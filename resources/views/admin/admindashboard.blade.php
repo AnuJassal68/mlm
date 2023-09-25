@@ -60,7 +60,7 @@
                                 <td>
                                     {{ substr(strip_tags($log->title . ' : ' . $log->action), 0, 50) }}
                                     <div style="display:none">
-                                        <div id="view{{ $log->id }}">
+                                        <div id="view{{ $log->id }}"><br>
                                             <a href="{{ $log->href }}" target="_blank">
                                                 <strong>{{ $log->title }}</strong>
                                             </a><br>

@@ -177,7 +177,7 @@
                     var userId = parseInt(userIdPart);
 
                     var modalHeader = $('<div class="modal-header"></div>');
-                    modalHeader.append('<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>');
+                    
                     modalHeader.append('<h4 class="modal-title" id="myModalLabel">Ticket <span id="uinfo_v"> : ' + response.user + '</span></h4>');
                     modalContent.append(modalHeader);
 
@@ -271,7 +271,15 @@
                     col6FooterDiv.append(pendingButton);
                     rowFooterDiv.append(col6FooterDiv);
                     modalFooter.append(rowFooterDiv);
+                     var closeButton = $('<button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>');
 
+                // Add a click event handler to close the modal when the button is clicked
+                closeButton.on('click', function() {
+                    $('#ticketModal').modal('hide');
+                });
+
+                // Append the custom close button to the modal header
+                modalHeader.append(closeButton);
                     // Append Modal Footer to Content
                     modalContent.append(modalFooter);
 
