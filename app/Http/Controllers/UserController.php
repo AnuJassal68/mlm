@@ -152,7 +152,7 @@ class UserController extends Controller
             return redirect('updateProfile')->with('success', 'Record(s) has been updated successfully!');
         }
         $userId = Session::get('user_id');
-        $uinfo = DB::table('tbl_user')->where('id', $userId)->get();
+        $uinfo =  User::where('id', $userId)->get();
         $family = json_decode($uinfo[0]->family_info, true);
 
         $emsg = session('emsg');
@@ -172,7 +172,7 @@ class UserController extends Controller
                 $uid = $id;
             }
         }
-        $uinfo = DB::table('tbl_user')->where('id', $uid)->first();
+        $uinfo = User::where('id', $uid)->first();
         // $family = json_decode($uinfo->family_info, true);
 
         $ruinfo = DB::table('tbl_user')->where('id', $uinfo->referalid)
