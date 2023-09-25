@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 /.phpunit.cache
 /node_modules
 /public/build
@@ -19,6 +20,8 @@ yarn-error.log
 /.idea
 /.vscode
 =======
+=======
+>>>>>>> 3a22d7e2953438a1201ed5ab195cfda71e6c17a5
 # These are some examples of commonly ignored file patterns.
 # You should customize this list as applicable to your project.
 # Learn more about .gitignore:
@@ -69,4 +72,7 @@ Thumbs.db
 *.mov
 *.wmv
 
+<<<<<<< HEAD
 >>>>>>> 6c837f88748624cfc4dd1b06b1ba91647dc9f42f
+=======
+>>>>>>> 3a22d7e2953438a1201ed5ab195cfda71e6c17a5
