@@ -14,6 +14,8 @@ use App\Models\DailyRoi;
 use App\Models\Ticketing;
 use App\Models\TicketMessage;
 use GuzzleHttp\Client;
+use App\Models\LaraBlockIo;
+// use Blockavel\LaraBlockIo;
 class DepositController extends Controller
 {
     /**
@@ -473,6 +475,7 @@ class DepositController extends Controller
  */
     public function allstatement(Request $request)
     {
+      
         try {
             $uid = $request->session()->get('user_id');
             $vid = base64_decode($request->input('vid'));
@@ -510,11 +513,13 @@ class DepositController extends Controller
 
     public function submitDeposit(Request $request)
     {
+        // require_once('vendor/autoload.php');
         try {
-            $sconfig = config('sconfig');
-            $invests = $sconfig['investment'];
-            $mindeposit = min($invests);
-    
+          $sconfig = config('sconfig');
+         $invests = $sconfig['investment'];
+         $mindeposit = min($invests);
+        return $use = LaraBlockIo::test();
+        dd($use);
             if ($request->deposit >= 10 && $request->deposit <= 99) {
                 $daily_percentage = 2.5;
             } elseif ($request->deposit >= 100 && $request->deposit <= 999) {
@@ -533,14 +538,14 @@ class DepositController extends Controller
                     "daily_percentage" => $daily_percentage,
                     "deposit_type" => 'Invest'
                 ];
-                $nid = InsertQry("tbl_deposit", $inserts);
+             $nid = InsertQry("tbl_deposit", $inserts);
     
                 if (!$nid) {
                     throw new \Exception("Failed to insert deposit record.");
                 }
     
-             
-                $res = check_block_io_address($nid);
+        
+                 return  $res = check_block_io_address($nid);
     
                 if ($res === 'success') {
                     return redirect()->route('processDeposit', ['token' => base64_encode($nid)]);

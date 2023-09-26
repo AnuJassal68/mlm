@@ -4,16 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
-class Deposit extends Model
+// use Blockavel\LaraBlockIo\LaraBlockIoFacade;
+class LaraBlockIo extends Model
 {
     use HasFactory;
-    public $timestamps = true;
-    protected $table = 'tbl_deposit';
-    protected $guarded = ['id'];
-
-    public function test()
+    public static  function test()
     {
+        dd('dfhjkl');
         return LaraBlockIo::getBalanceInfo();
     }
 }

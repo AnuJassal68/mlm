@@ -148,51 +148,31 @@
             </div>
         </div>
     </div>
-
 </section>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     window.csrfToken = "{{ csrf_token() }}";
-
-
     $(document).on('click', '.view-button', function() {
         var ticketId = $(this).attr('href').substring(1);
-
         $.ajax({
             url: '/get-ticket-details/' + ticketId
             , method: 'GET',
-
-
             success: function(response) {
-
                 if (response.ret) {
                     var modalContent = $('<div class="modal-content"></div>');
-                    var userParts = response.user.split(' '); // Split the user value into parts
-                    var userIdPart = userParts[userParts.length - 1]; // Assuming the user ID is the last part
-
-                    // Convert the user ID part to an integer
-                    var userId = parseInt(userIdPart);
-                    // Modal Header
-                    var modalHeader = $('<div class="modal-header"></div>');
-                 
+                    var userParts = response.user.split(' '); 
+                    var userIdPart = userParts[userParts.length - 1]; 
+                    var userId = parseInt(userIdPart);            
+                    var modalHeader = $('<div class="modal-header"></div>');               
                     modalHeader.append('<h4 class="modal-title" id="myModalLabel">Ticket <span id="uinfo_v"> : ' + response.user + '</span></h4>');
                     modalContent.append(modalHeader);
-
-                    // Modal Body
                     var modalBody = $('<div class="modal-body"></div>');
                     var timelineUl = $('<ul class=""></ul>');
-
-
-
                     response.ret.forEach(function(message) {
-
                         var timelineItem = $('<li><div class="timeline-item"></div></li>');
                         var timelineItemDiv = timelineItem.find('.timeline-item');
-
                         var formattedDateTime = formatDateTime(message.created_at);
                         timelineItemDiv.append('<span class="time"><i class="fa fa-clock-o"></i> ' + formattedDateTime + '</span>');
-
-                        // Function to format date and time
                         function formatDateTime(dateTime) {
                             var dateObj = new Date(dateTime);
                             var options = {
@@ -202,47 +182,31 @@
                                 , hour: 'numeric'
                                 , minute: 'numeric'
                                 , second: 'numeric'
-                                , hour12: false, // Use 24-hour format
+                                , hour12: false, 
                             };
                             return dateObj.toLocaleDateString('en-US', options);
                         }
-                        // ...
-
                         if (message && message.userId === 1) {
                             timelineItemDiv.append('<h3 class="timeline-header"><a href="#">Support Team</a></h3>');
 
-                            // Append Edit and Update buttons for support team messages
-                            // Modify your existing code that generates buttons
                             var editButton = $('<button type="button" class="btn btn-xs btn-warning ecmsg m-1" data-message-id="' + message.ticketMessageId + '">Edit</button>');
                             var cancelButton = $('<button type="button" class="btn btn-xs btn-danger dnone ccmsg m-1" data-message-id="' + message.ticketMessageId + '">Cancel</button>');
                             var updateButton = $('<button type="button" class="btn btn-xs btn-success dnone ucmsg m-1" data-message-id="' + message.ticketMessageId + '">Update</button>');
-
-
-                            // Create the textarea, initially hidden
                             var editTextarea = $('<textarea class="form-control edit-textarea mt-2 mb-2" name="msg" style="height:100px; display:none;"></textarea>');
-
-                            // Display the normal message
                             var messageDiv = $('<div class="timeline-message">' + message.message + '</div>');
                             timelineItemDiv.append(messageDiv, editButton, cancelButton, updateButton, editTextarea);
-
                         } else {
                             timelineItemDiv.append('<h3 class="timeline-header"><a href="#">' + response.user + '</a></h3>');
                             timelineItemDiv.append('<div class="timeline-message">' + message.message + '</div>');
                         }
-
                         var timelineFooter = $('<div class="timeline-footer"></div>');
                         timelineItemDiv.append(timelineFooter);
-
                         timelineUl.append(timelineItem);
                     });
                     modalBody.append('<div id="ticket_list" style="height:250px;overflow:auto"></div>'); // Placeholder for timeline
                     modalBody.find('#ticket_list').append(timelineUl);
                     modalBody.append('<br><textarea class="form-control" name="tmessage" id="tmessage" style="height:100px;">Dear Trader, </textarea>');
-
-                    // Append Modal Body to Content
                     modalContent.append(modalBody);
-
-                    // Modal Footer
                     var modalFooter = $('<div class="modal-footer" id="modal-footer"></div>');
                     var rowFooterDiv = $('<div class="row"></div>');
                     var col6FooterDiv = $('<div class="col-xs-6"></div>');
@@ -251,7 +215,6 @@
                     var replyButton = $('<input type="button" name="updateticket" value="Reply Ticket" id="updateticket" class="btn btn-success pull-left">');
                     replyButton.attr('data-ticket-id', ticketId);
                     replyButton.data('user_id', response.ret[0].userId);
-
                     replyButton.on('click', function() {
                         var ticketId = response.ret[0].ticketId;
                         var userId = response.ret[0].userId;
@@ -279,7 +242,6 @@
                             }
                         });
                     });
-
                     col6FooterDiv.append(replyButton);
                     var col6FooterDiv2 = $('<div class="col-xs-6"></div>');
                     col6FooterDiv2.append('<div class="form-group"></div>');
@@ -289,55 +251,46 @@
                     modalFooter.append(rowFooterDiv);
                      var closeButton = $('<button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>');
 
-                // Add a click event handler to close the modal when the button is clicked
+               
                 closeButton.on('click', function() {
                     $('#ticketModal').modal('hide');
                 });
 
-                // Append the custom close button to the modal header
+              
                 modalHeader.append(closeButton);
-                    // Append Modal Footer to Content
+                  
                     modalContent.append(modalFooter);
 
-                    // Set Modal Content and Show Modal
+                 
                     $('#ticketModal').find('.modal-content').html(modalContent);
                     $('#ticketModal').modal('show');
                 }
             }
         });
     });
-    // Add event delegation for the Edit button
     $(document).on('click', '.ecmsg', function() {
         var editButton = $(this);
         var timelineItemDiv = editButton.closest('.timeline-item');
         var messageDiv = timelineItemDiv.find('.timeline-message');
         var editTextarea = timelineItemDiv.find('.edit-textarea');
-
-        // Show the Update and Cancel buttons and enable the textarea for editing
         editButton.hide();
         editButton.siblings('.ccmsg, .ucmsg').show();
         messageDiv.hide();
-        // Set the textarea with the original message
+ 
         editTextarea.val(messageDiv.text()).show().prop('disabled', false);
     });
 
-
-    // Add event delegation for the Cancel button
     $(document).on('click', '.ccmsg', function() {
         var cancelButton = $(this);
         var timelineItemDiv = cancelButton.closest('.timeline-item');
         var messageDiv = timelineItemDiv.find('.timeline-message');
         var editTextarea = timelineItemDiv.find('.edit-textarea');
-
-        // Hide the Update and Cancel buttons and show the Edit button
         cancelButton.hide();
         cancelButton.siblings('.ecmsg').show();
         cancelButton.siblings('.ucmsg').hide();
         messageDiv.show();
         editTextarea.hide().prop('disabled', true);
     });
-
-    // Add event delegation for the Update button
     $(document).on('click', '.ucmsg', function() {
         var updateButton = $(this);
         var messageId = updateButton.data('message-id');
@@ -345,7 +298,6 @@
         var messageDiv = timelineItemDiv.find('.timeline-message');
         var editTextarea = timelineItemDiv.find('.edit-textarea');
         var updatedMessage = editTextarea.val();
-
         $.ajax({
             url: '/update-ticket-message/' + messageId
             , data: {
@@ -355,20 +307,19 @@
             , success: function(response) {
                 if (response.success) {
                     console.log('Ticket message updated successfully.');
-                    // Update the displayed message with the new message
+     
                     messageDiv.text(updatedMessage);
-                    // Hide the Update and Cancel buttons, show the Edit button
+               
                     updateButton.hide();
                     updateButton.siblings('.ccmsg, .ecmsg').show();
                     messageDiv.show();
                     editTextarea.hide().prop('disabled', true);
-                    // Handle any additional logic if needed
+          
                 } else {
                     console.error('Failed to update ticket message.');
                 }
             }
         });
     });
-
 </script>
 @endsection

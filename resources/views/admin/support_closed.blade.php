@@ -273,47 +273,46 @@
                     modalFooter.append(rowFooterDiv);
                      var closeButton = $('<button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>');
 
-                // Add a click event handler to close the modal when the button is clicked
+         
                 closeButton.on('click', function() {
                     $('#ticketModal').modal('hide');
                 });
 
-                // Append the custom close button to the modal header
                 modalHeader.append(closeButton);
-                    // Append Modal Footer to Content
+            
                     modalContent.append(modalFooter);
 
-                    // Set Modal Content and Show Modal
+                
                     $('#ticketModal').find('.modal-content').html(modalContent);
                     $('#ticketModal').modal('show');
                 }
             }
         });
     });
-  // Add event delegation for the Edit button
+
     $(document).on('click', '.ecmsg', function() {
         var editButton = $(this);
         var timelineItemDiv = editButton.closest('.timeline-item');
         var messageDiv = timelineItemDiv.find('.timeline-message');
         var editTextarea = timelineItemDiv.find('.edit-textarea');
 
-        // Show the Update and Cancel buttons and enable the textarea for editing
+
         editButton.hide();
         editButton.siblings('.ccmsg, .ucmsg').show();
         messageDiv.hide();
-        // Set the textarea with the original message
+
         editTextarea.val(messageDiv.text()).show().prop('disabled', false);
     });
 
 
-    // Add event delegation for the Cancel button
+
     $(document).on('click', '.ccmsg', function() {
         var cancelButton = $(this);
         var timelineItemDiv = cancelButton.closest('.timeline-item');
         var messageDiv = timelineItemDiv.find('.timeline-message');
         var editTextarea = timelineItemDiv.find('.edit-textarea');
 
-        // Hide the Update and Cancel buttons and show the Edit button
+      
         cancelButton.hide();
         cancelButton.siblings('.ecmsg').show();
         cancelButton.siblings('.ucmsg').hide();
@@ -321,11 +320,10 @@
         editTextarea.hide().prop('disabled', true);
     });
 
-    // Add event delegation for the Update button
-   // Add event delegation for the Update button
+   
 $(document).on('click', '.ucmsg', function() {
     var updateButton = $(this);
-    var messageId = updateButton.data('message-id'); // Retrieve the messageId using data attribute
+    var messageId = updateButton.data('message-id');
     console.log(messageId)
     var timelineItemDiv = updateButton.closest('.timeline-item');
     var messageDiv = timelineItemDiv.find('.timeline-message');
@@ -333,7 +331,7 @@ $(document).on('click', '.ucmsg', function() {
     var updatedMessage = editTextarea.val();
 
     $.ajax({
-        url: '/update-ticket-message/' + messageId, // Use the retrieved messageId
+        url: '/update-ticket-message/' + messageId, 
         data: {
             _token: window.csrfToken,
             msg: updatedMessage
@@ -341,14 +339,14 @@ $(document).on('click', '.ucmsg', function() {
         success: function(response) {
             if (response.success) {
                 console.log('Ticket message updated successfully.');
-                // Update the displayed message with the new message
+              
                 messageDiv.text(updatedMessage);
-                // Hide the Update and Cancel buttons, show the Edit button
+              
                 updateButton.hide();
                 updateButton.siblings('.ccmsg, .ecmsg').show();
                 messageDiv.show();
                 editTextarea.hide().prop('disabled', true);
-                // Handle any additional logic if needed
+              
             } else {
                 console.error('Failed to update ticket message.');
             }

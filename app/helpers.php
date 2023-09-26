@@ -16,13 +16,15 @@ use App\Models\Spent;
 use App\Models\SpentExtra;
 use App\Models\ProfitData;
 use App\Models\User;
-use BlockIo\BlockIo;
+// use BlockIo\BlockIo;
 use GuzzleHttp\Client;
 use App\Models\ActivityLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Collection;
+use Blockavel\LaraBlockIo\LaraBlockIoFacade;
+use App\Models\LaraBlockIo;
 
 
 function balance_info($userid)
@@ -72,7 +74,7 @@ function balance_info($userid)
     $ret['binc'] = round($balinc, 2);
     $ret['wid'] = round($sinfo->totinc, 2);
 
-
+    // Access the configuration settings using the Config facade
     $service_tax = Config::get('sconfig.service_tax');
     $re_invest = Config::get('sconfig.re_invest');
 
@@ -105,7 +107,7 @@ function bitexchange($currency = 'USD')
     $result = curl_exec($ch);
     curl_close($ch);
     $info = json_decode($result, true);
-
+    // dd($info );
     $rate = $info['rate'];
     return $rate;
 }
@@ -113,7 +115,7 @@ function bitexchange($currency = 'USD')
 
 function api_data()
 {
- 
+    // Define your API data here
     $apiKey = '971c-018a-1473-1192';
     $pin = 'apidots9779150641';
 
@@ -140,35 +142,37 @@ function dowithdrawal($uinfo, $ret, $sconfig)
     $sconfig = config('sconfig');
     $timenow = time();
 
-    
+    // Include the required dependencies
+   
+    // Insert data into the 'tbl_spent' table
     $inserts = [
         "userid" => $uinfo->id,
         "tds" => $ret['stax'],
         "admincharges" => $ret['rein'],
         "bankdetails" => $uinfo->accountno,
-        "processamt" => request('netamount'), 
+        "processamt" => request('netamount'), // Use Laravel's request() function to access post data
         "chargedamount" => $ret['neta'],
-        "ipaddress" => request()->ip(), 
+        "ipaddress" => request()->ip(), // Use Laravel's request()->ip() function to get the client's IP address
         "createdate" => $timenow
     ];
    
     $nid = InsertQry("tbl_spent", $inserts);
 
-
+    // Get API data
     $api = api_data();
     $apiKey = $api['apikey'];
     $pin = $api['pin'];
 
-    $version = 2; 
+    $version = 2; // the API version
 
-   
+    // Create the Guzzle HTTP client with the configuration options as an array
     $config = [
         'base_uri' => 'https://block.io/api/v2/',
         'timeout' => 10,
-  
+        // Add any additional headers here if needed
     ];
 
-    $block_io = new Client($config); 
+    $block_io = new Client($config); // Use the $config array here
 
     $rate = bitexchange();
 
@@ -179,7 +183,8 @@ function dowithdrawal($uinfo, $ret, $sconfig)
     try {
         $getinfo = $block_io->withdraw(array('amounts' => $amount, 'to_addresses' => $uinfo[0]->accountno));
 
-      
+        // Print the result for debugging (optional)
+        // print_r($getinfo);
 
         $vard = print_r($getinfo, true);
         $vard = strtolower($vard);
@@ -198,7 +203,7 @@ function dowithdrawal($uinfo, $ret, $sconfig)
 
 
 
-
+// app/Helpers/CustomHelpers.php
 
 function InsertQry($table, $insert, $log = '')
 {
@@ -253,13 +258,13 @@ function InsertQry($table, $insert, $log = '')
         $apiKey = $api['apikey'];
         $pin = $api['pin'];
 
-        $version = 2; 
+        $version = 2; // the API version
 
         $client = new Client([
             'base_uri' => 'https://block.io/api/v2/bitcoinspurchase',
             'timeout' => 10,
             'headers' => [
-               
+                // Add any additional headers here if needed
             ],
         ]);
 
@@ -282,11 +287,11 @@ function InsertQry($table, $insert, $log = '')
         dd( $response);
         
         if ($response->getStatusCode() !== 200) {
-      
+            // Handle non-200 status code here
             echo "API request failed with status code: " . $response->getStatusCode();
         } else {
             $data = json_decode($response->getBody());
-          
+            // Process the response data
             $ret['address'] = $data->data->address;
             $ret['label'] = $data->data->label;
         }
@@ -299,7 +304,7 @@ function InsertQry($table, $insert, $log = '')
 
 
 
-
+// Additional helper functions (if any) can be defined here
 
 function random_number($numchar) {
     $str = "123456789";
@@ -381,7 +386,7 @@ function re_activate_investment($inid, $sconfig, $timenow = "")
                             "createdate" => $timenow,
                             "activedate" => $timenow
                         ];
-                       
+                        // InsertQry("tbl_income", $inserts);
                     }
                     $mn++;
                 }
@@ -410,7 +415,7 @@ function re_activate_investment($inid, $sconfig, $timenow = "")
                         "createdate" => $timenow,
                         "activedate" => $timenow
                     ];
-                    
+                    // InsertQry("tbl_income", $inserts);
                 }
             }
         }
@@ -461,14 +466,14 @@ function re_activate_investment($inid, $sconfig, $timenow = "")
     }
 }
 
-
+// app/Helpers/CustomHelpers.php
 
 
     function getRealIpAddr()
     {
-        if (!empty(request()->server('HTTP_CLIENT_IP'))) {   
+        if (!empty(request()->server('HTTP_CLIENT_IP'))) {   // Check if the IP is from shared internet
             $ip = request()->server('HTTP_CLIENT_IP');
-        } elseif (!empty(request()->server('HTTP_X_FORWARDED_FOR'))) {   
+        } elseif (!empty(request()->server('HTTP_X_FORWARDED_FOR'))) {   // Check if the IP is passed from a proxy
             $ip = request()->server('HTTP_X_FORWARDED_FOR');
         } else {
             $ip = request()->server('REMOTE_ADDR');
@@ -500,16 +505,17 @@ function updateQry($table, $update, $parameters, $log = '')
 
     $query = substr($query, 0, -1) . ' WHERE ' . $parameters;
 
-   
+    // Perform the update query using Eloquent
     $log = is_string($log) ? ['counter' => $log] : $log;
     if (Arr::has($log, 'counter') && $log['counter'] !== '0') {
-       
+        // Perform the update query using Eloquent
         DB::update($query, $bindings);
         
-      
+        // Log activity if required
+        // ...
     }
 
-
+    // Log activity if required
     if (!in_array($table, ['tbl_avtivity_log', 'tbl_income']) && session('ADMIN.ID') > 0 && $log !== '') {
         $affectedRows = DB::select('SELECT ' . implode(',', $keys) . ' FROM ' . $table . ' WHERE ' . $parameters);
 
@@ -595,7 +601,7 @@ function activate_investment($inid, $sconfig, $timenow = "")
         $nids = [0];
         $refid = 0;
 
-       
+        // CIRCULATE INCOME UPWARDS UPTO GIVEN LEVEL
         $mn = 0;
         foreach ($dstat as $stat) {
             if ($stat->levelid == 1) {
@@ -657,7 +663,7 @@ function activate_investment($inid, $sconfig, $timenow = "")
             }
         }
         
-       
+        // CHECK REFERRAL FOR 5 x 100/500 DIRECTS
         $paidUser = Deposit::where('userid', $dstat[$i]->parentid)
             ->where('bActive', 'Y')
             ->first();
@@ -673,33 +679,33 @@ function activate_investment($inid, $sconfig, $timenow = "")
                 ->get();
         
             foreach ($uinfo as $user) {
-                
+                // UNLIMITED CONDITION
                 if ($user->mentor_income >= $con_amt1) {
                     $knt += 1;
                 }
         
-              
+                // RAISE TO 4%
                 if ($user->mentor_income >= $con_amt2) {
                     $lnt += 1;
                 }
             }
         
             if ($knt >= $cond_dir) {
-              
+                // MARK PARENT AS UNLIMITED
                 DB::table("tbl_dstat")
                     ->where('parentid', $refid)
                     ->where('unlimited', '0')
                     ->update(['unlimited' => 1]);
         
-              
+                // UPDATE USER INFO
                 User::where('id', $refid)
                     ->where('bmentor', 'N')
                     ->update(['coursedate' => $timenow, 'bmentor' => 'Y']);
             }
         
-        
+            // MARK RAISE TO 4%
             if ($lnt >= $cond_dir) {
-               
+                // UPDATE USER INFO
                 User::where('id', $refid)
                     ->where('bdormant', 'N')
                     ->update(['packagedate' => $timenow, 'bdormant' => 'Y']);
@@ -714,7 +720,7 @@ function activate_investment($inid, $sconfig, $timenow = "")
 
 function check_block_io_address($nid)
 {
-    $dinfo = DB::table("tbl_deposit")
+ $dinfo = DB::table("tbl_deposit")
         ->select("deposit", "label")
         ->where("id", $nid)
         ->where("bActive", "N")
@@ -722,18 +728,19 @@ function check_block_io_address($nid)
         ->first();
 
     if ($dinfo) {
-        $api = api_data();
+      $api = api_data();
         $apiKey = $api['apikey'];
         $pin = $api['pin'];
 
-        $version = 2; 
+        $version = 2; // the API version
 
-       
-        $client = new Client([
-            'base_uri' => 'https://block.io/api/v2/', 
-            'timeout' => 10,
-        ]);
-
+        // Create a Guzzle Client instance
+        //    $client = new LaraBlockIo([
+        //     'base_uri' => 'https://block.io/api/v2/', // Update with the correct base URL
+        //     'timeout' => 10,
+        // ]);
+// return $use = LaraBlockIo::test();
+// dd($use);
         $oid = random_number(4);
         $label = $oid . $nid;
 
@@ -741,8 +748,8 @@ function check_block_io_address($nid)
         $ret = array();
 
         try {
-           
-            $response = $client->get('your_api_endpoint_here', [ 
+            // Send a GET request using Guzzle Client
+            $response = $client->get('your_api_endpoint_here', [ // Replace 'your_api_endpoint_here' with the actual API endpoint
                 'query' => [
                     'labels' => $dinfo->label,
                     'apiKey' => $apiKey,
@@ -750,8 +757,8 @@ function check_block_io_address($nid)
                     'version' => $version,
                 ],
             ]);
-
-           
+dd( $response);
+            // Parse the response JSON
             $data = json_decode($response->getBody());
 
             $ret['available_balance'] = $data->data->balances[0]->available_balance;
@@ -776,7 +783,7 @@ function check_block_io_address($nid)
                         $daily_percentage = 4;
                     }
 
-                  
+                    // Update the record in the database using DB facade
                     DB::table("tbl_deposit")
                         ->where("id", $nid)
                         ->update([
@@ -796,7 +803,7 @@ function check_block_io_address($nid)
         } catch (\Exception $e) {
             $error_log = $e->getMessage();
 
-         
+            // Update the error_log in the database using DB facade
             DB::table("tbl_deposit")
                 ->where("id", $nid)
                 ->update(['error_log' => $error_log]);
@@ -830,7 +837,7 @@ function createresult($result, $fetch = "", $debug = "N")
     $collection = new Collection($data);
 
     if ($debug == 'Y') {
-       
+        // You can log the collection data for debugging purposes
         logger($collection);
     }
 
