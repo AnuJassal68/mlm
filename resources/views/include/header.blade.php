@@ -8,7 +8,7 @@
 	<!--[if IE]><meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'><![endif]-->
 
 	<!-- Favicone Icon -->
-	<link rel="shortcut icon" type="image/x-icon" href="favicon1.ico">
+ <link rel="shortcut icon" href="{{ asset('admin/images/favicon.png')}}" />
 	<!-- CSS -->
 	<link href="https://fonts.googleapis.com/css?family=Raleway:300,400,700,800%7CLato:300,400,700" rel="stylesheet" type="text/css">
 	<link href="assets/css/bootstrap.css" rel="stylesheet" type="text/css">
@@ -61,19 +61,19 @@
 				<nav class='navigation'>
 					<ul>
 						<li>
-							<a href="/">Home</a>
+							<a href="">Home</a>
 						</li>
 						<li>
-							<a href="/about">About CW</a>
+							<a href="{{url('about')}}">About CW</a>
 						</li>
 						<li>
-							<a href="/how-it-works">How it Works</a>
+							<a href="{{url('how-it-works')}}">How it Works</a>
 						</li>
 						<li>
-							<a href="/future">Future</a>
+							<a href="{{url('future')}}">Future</a>
 						</li>
 						<li>
-							<a href="/concept">Concept</a>
+							<a href="{{url('concept')}}">Concept</a>
 						</li>
 
 

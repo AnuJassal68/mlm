@@ -56,4 +56,7 @@
         </div>
     </section>
 </section>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="path-to-bootstrap-datepicker.js"></script>
 @include('user.include.footer')

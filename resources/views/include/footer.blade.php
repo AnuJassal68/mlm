@@ -26,7 +26,7 @@
 									<a href="about"><i class="fa fa-angle-double-right"></i> About Us</a>
 								</li>
 								<li>
-									<a href="/faq"><i class="fa fa-angle-double-right"></i> FAQs</a>
+									<a href="faq"><i class="fa fa-angle-double-right"></i> FAQs</a>
 								</li>
 								<li>
 									<a href="javascript:avoid(0);"><i class="fa fa-angle-double-right"></i> Privacy policy</a>

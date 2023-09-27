@@ -8,16 +8,22 @@ use App\Models\User;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
-
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Support\Facades\Hash;
 class LoginController extends Controller
 {
     //
+    use AuthenticatesUsers;
 
     public function showLoginForm()
     {
         return view('front.login');
     }
+    public function __construct()
+{
+    $this->middleware('guest')->except('logout');
+}
+
 /**
  * Authenticate a user based on email and password.
  *

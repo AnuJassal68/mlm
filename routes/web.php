@@ -50,7 +50,7 @@ Route::get('/about', [HomeController::class,'about']);
 Route::get('/faq', [HomeController::class,'faq']);
 
 
-// Route::middleware('auth.user')->group(function () {
+Route::middleware('auth.dashboard')->group(function () {
 Route::get('dashboard', [UserController::class,'dashboard'])->name('user/dashboard');
 
 Route::get('profile', [UserController::class,'profile'])->name('profile');
@@ -85,7 +85,7 @@ Route::post('/setting', [SettingController::class, 'updateSettings'])->name('set
 Route::get('/income-setting', [IncomeSettingController::class, 'showIncomeSettingsForm'])->name('income-setting');
 Route::post('/income-setting', [IncomeSettingController::class, 'updateIncomeSettings'])->name('update-setting');
 
-
+});
 
 Route::any('/forget-password', [ForgotPasswordController::class, 'forgetpasswordpage'])->name('forget-password');
 Route::any('/sendPasswordResetEmail', [ForgotPasswordController::class, 'sendPasswordResetEmail'])->name('sendPasswordResetEmail');

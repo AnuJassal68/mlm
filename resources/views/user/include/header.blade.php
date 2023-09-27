@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="users/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+     <link rel="shortcut icon" href="{{ asset('admin/images/favicon.png')}}" />
     <link href="users/dist/css/animate.min.css" rel="stylesheet" />
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
     <link href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet" type="text/css" />
@@ -144,10 +145,10 @@
                                             <div class="clearfix"></div>
                                         </div>
                                     </li>
-                                    <li><a href="{{url('showForm')}}"><i class="fa fa-cog"></i> Change Password</a></li>
+                                    <li><a href="{{url('showChangePasswordForm')}}"><i class="fa fa-cog"></i> Change Password</a></li>
                                     <li><a href="{{route('updateProfile')}}"><i class="fa fa-sliders"></i> Account Details</a></li>
                                     {{-- <li role="separator" class="divider"></li> --}}
-                                    <li><a href="/log-out" class="color-danger text-center"><i class="fa fa-sign-out"></i> Logout</a></li>
+                                    <li><a href="{{url('log-out')}}" class="color-danger text-center"><i class="fa fa-sign-out"></i> Logout</a></li>
                                 </ul>
                             </li>
                             <!-- /.dropdown -->
