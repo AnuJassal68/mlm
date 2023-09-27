@@ -59,7 +59,7 @@
                                 </div>
                                 <div class="form-group">
                                     <input type="submit" name="submitclient" value="{{ isset($binfo) ? 'Update' : 'Add' }}" class="btn btn-success">
-                                    <a href="{{ url('/notification') }}" class="btn btn-danger">Cancel</a>
+                                    <a href="{{ url('notifications') }}" class="btn btn-danger">Cancel</a>
                                 </div>
                             </form>
                         </div>

@@ -31,7 +31,7 @@
                                     <input type="checkbox" name="bactive" {{ isset($country) && $country->bActive == 'Y' ? 'checked' : '' }}>
                                 </div>
                                 <div class="form-group">
-                                    <input type="submit" name="submitclient" value="{{ isset($country) ? 'Update' : 'Add' }}" class="btn btn-success">
+                                    <input type="submit" name="submitclient" value="{{ isset($country->id) ? 'Update' : 'Add' }}" class="btn btn-success">
                                     <input type="button" name="cancel" id="cancel" value="Cancel" onclick="javascript:window.location.href='{{ url('/countries') }}'" class="btn btn-danger">
                                 </div>
                             </form>

@@ -196,7 +196,7 @@
         var ticketId = $(this).attr('href').substring(1);
 
         $.ajax({
-            url: '/get-ticket-details/' + ticketId
+            url: 'get-ticket-details/' + ticketId
             , method: 'GET',
 
 

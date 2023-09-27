@@ -166,7 +166,7 @@
         var ticketId = $(this).attr('href').substring(1);
         console.log(ticketId)
         $.ajax({
-            url: '/get-closed-ticket-data/' + ticketId
+            url: 'get-closed-ticket-data/' + ticketId
             , method: 'GET'
             , success: function(response) {
                 console.log(response)
