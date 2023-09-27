@@ -23,7 +23,7 @@
             <ul class="navbar-nav">
                 <li class="nav-item font-weight-semibold d-none d-lg-block ms-0">
                     <h3><span id="greetings"></span>, {{ Auth::guard('admin')->user()->username}} </h3>
-                    {{-- <h5 id="demo"></h5> --}}
+                    <h5 id="demo"></h5>
                     {{-- <h6>Here is your today's report</h6> --}}
                 </li>
             </ul>
@@ -237,4 +237,8 @@
     else if (hrs >= 16 && hrs <= 24)
         greet = 'Good Evening';
     document.getElementById('greetings').innerHTML = '<b>' + greet + '</b>';
+    const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const d = new Date();
+    let day = weekday[d.getDay()];
+    document.getElementById("demo").innerHTML = day;
 </script>

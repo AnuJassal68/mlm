@@ -25,8 +25,8 @@
                         </div>
 
                         <div class="table-responsive" >
-                            <table id="order-listing" class="table table-responsive text-center table-bordered table-striped table-hover">
-                                <thead>
+                           <table id="order-listing" class="table table-responsive text-center table-bordered table-hover table-striped">
+                                <thead class="thead  text-white text-center" style="background: #0b3547;" height="50px;">
                                     <tr>
                                         <th>Date</th>
                                         <th>User info</th>

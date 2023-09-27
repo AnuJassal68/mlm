@@ -155,6 +155,7 @@ class UserController extends Controller
  * @param  \Illuminate\Http\Request  $request
  * @return \Illuminate\View\View
  */
+
     public function profile(Request $request)
     {
         $uid = $request->session()->get('user_id');

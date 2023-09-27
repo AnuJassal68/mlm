@@ -18,7 +18,7 @@
           </li>
              <li class="nav-item">
             <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
-              <i class="menu-icon mdi mdi-floor-plan"></i>
+             <i class="menu-icon mdi mdi-clipboard-text"></i>
               <span class="menu-title">Settings</span>
               <i class="menu-arrow"></i>
             </a>
