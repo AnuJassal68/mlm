@@ -10,19 +10,23 @@ use App\Mail\PasswordResetMail; // Import your mail class
 
 class ForgotPasswordController extends Controller
 {
+    /**
+ * Send a password reset email to the user.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\RedirectResponse
+ */
     public function sendPasswordResetEmail(Request $request)
     {
-      $email = $request->input('emailid');
+        $email = $request->input('emailid');
 
-        // Check if the email exists in your database
-         $user = User::where('emailid', $email)->where('bemail', 1)->where('bActive', 'Y')->first();
+        $user = User::where('emailid', $email)->where('bemail', 1)->where('bActive', 'Y')->first();
 
         if (!$user) {
             return redirect()->route('forgot-password')->with('error', 'Invalid email or user not found.');
         }
 
-        // Generate a new password and send it via email
-        $newPassword = Str::random(8); // Generate a new password (you can customize this)
+        $newPassword = Str::random(8);
         $user->loginpassword = bcrypt($newPassword);
         $user->save();
 
@@ -32,9 +36,9 @@ class ForgotPasswordController extends Controller
         return redirect('log-in')->with('success', 'Password reset successful. Check your email for the new password.');
     }
 
-    public function forgetpasswordpage(){
-       
-        return view ('front.forget-password');
+    public function forgetpasswordpage()
+    {
+
+        return view('front.forget-password');
     }
 }
-

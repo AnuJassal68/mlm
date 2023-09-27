@@ -18,11 +18,12 @@ class LoginController extends Controller
     {
         return view('front.login');
     }
-
-
-
-   
-    
+/**
+ * Authenticate a user based on email and password.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\RedirectResponse
+ */
     public function login(Request $request)
     {
         $emailId = $request->input('emailid');
@@ -35,18 +36,13 @@ class LoginController extends Controller
                   ->first();
     
             if ($user && Hash::check($loginPassword, $user->loginpassword)) {
-                // Authentication successful
                 $request->session()->put('user_id', $user->id);
                 $request->session()->put('loginid', $user->loginid);
                 $request->session()->put('user_name', $user->firstname);
                 $request->session()->put('USER.PID', $user->packageid);
-                $request->session()->put('USER.SESSID', $user->id . time() . rand(9, 999));
-    
-                // Update 'logsessid' field in the database
+                $request->session()->put('USER.SESSID', $user->id . time() . rand(9, 999)); 
                 $user->logsessid = $request->session()->get('USER.SESSID');
                 $user->save();
-    
-                // Insert login information into the 'tbl_log' table
                 $insert = [
                     'userid' => $user->id,
                     'logintime' => time(),
@@ -63,11 +59,15 @@ class LoginController extends Controller
             $emsg = "Login Id & Password cannot be left blank!";
             $etype = "danger";
         }
-    
-        // If authentication fails, redirect back with error messages
+
         return back()->with(compact('emsg', 'etype'));
     }
-    
+    /**
+ * Process the request to retain the password.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\RedirectResponse
+ */
 
     public function retainPassword(Request $request)
     {
@@ -78,7 +78,6 @@ class LoginController extends Controller
             if ($user) {
                 $request->session()->increment('TSES');
                 if ($request->session()->get('TSES') <= 3) {
-                    // Implement setnotification() function here
                 }
                 return redirect()->route('password-sent');
             } else {
@@ -90,22 +89,26 @@ class LoginController extends Controller
             $etype = "danger";
         }
 
-        // If validation fails, redirect back with error messages
         return back()->with(compact('emsg', 'etype'));
     }
-
+/**
+ * Display the user dashboard.
+ *
+ * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+ */
     public function dashboard()
     {
-        // Get user information from the session
+     
         $userId = session('user_id');
         $uinfo = User::where('id', $userId)->first();
-
-        // Perform other operations as needed for the dashboard
-
-        // Load the dashboard view and pass data to it
         return view('dashboard', compact('uinfo'));
     }
-
+/**
+ * Logout the user and clear session data.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\RedirectResponse
+ */
     public function logout(Request $request)
     {
         $request->session()->forget('USER');
@@ -124,7 +127,12 @@ class LoginController extends Controller
     {
         return view('user.change-password');
     }
-
+/**
+ * Change the user's login password.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\RedirectResponse
+ */
     public function changePassword(Request $request)
     {
         $emsg = null;
@@ -147,11 +155,6 @@ class LoginController extends Controller
                 // Update the user's login password
                 $user->loginpassword = $request->input('rnpassword');
                 $user->save();
-
-
-                // Set notification and redirect back with success message
-                // You can implement your setnotification() function here
-                // ...
 
                 return redirect()->route('changePasswordForm')->with([
                     'emsg' => 'Login Password has been changed successfully !',

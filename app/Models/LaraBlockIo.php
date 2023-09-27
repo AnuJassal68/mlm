@@ -10,7 +10,7 @@ class LaraBlockIo extends Model
     use HasFactory;
     public static  function test()
     {
-        dd('dfhjkl');
+        // dd('dfhjkl');
         return LaraBlockIo::getBalanceInfo();
     }
 }

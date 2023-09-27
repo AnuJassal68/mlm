@@ -38,10 +38,8 @@ class HomeController extends Controller
 
     public function showHeader()
     {
-        // Generate the referral link
+        
         $referralLink = URL::to('/').'?ref='.$uinfo[0]->loginid;
-    
-        // Pass the referral link variable to the header view
         return view('includes.header', ['referralLink' => $referralLink]);
     }
     

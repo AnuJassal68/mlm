@@ -12,9 +12,14 @@ use Illuminate\Support\Facades\Response;
 
 class FranchiseController extends Controller
 {
-    //
 
 
+/**
+ * Display a list of users based on search filters.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Contracts\View\View
+ */
     public function userlist(Request $request)
     {
         $timenow = time();
@@ -64,18 +69,12 @@ class FranchiseController extends Controller
             }
         }
         
-    
-        // Define the array of designations
+ 
         $degs = array(1 => "IR Consultant", 2 => "Ex Officer", 3 => "Manager");
-    
-        // Get the query results
            $qinfo = getquery("tbl_user", $setqry . "  ORDER BY  id DESC ", "tbl_user.id,tbl_user.referalid,tbl_user.did,tbl_user.loginid,tbl_user.firstname,tbl_user.middlename,tbl_user.lastname,tbl_user.bActive,tbl_user.createdate,tbl_user.aboutme,tbl_user.bemail", "Y", "Ya");
-    
-        // Initialize arrays for referral information
          $refinfo = $refids = array();
-    
-        // Extract referral IDs
-       $refids = []; // Initialize the array
+
+       $refids = []; 
 
         foreach ($qinfo as $result) {
             if ( isset($result['referalid'])) {
@@ -110,10 +109,6 @@ class FranchiseController extends Controller
         // You can pass the data to the view
         return view('admin.userlist', compact('qinfo', 'refinfo',  'q', 'fo', 'f', 'qry', 'fullset'));
     }
-    
-
-
-
 
 
     /**
@@ -190,24 +185,21 @@ class FranchiseController extends Controller
 public function usersearch(Request $request)
 {
     try {
-        // Get the search query (q), filter option (fo), and filter (f) from the request.
+
         $q = $request->input('q');
         $fo = $request->input('fo');
         $f = $request->input('f');
 
-        // Build a query string with the search and filter parameters.
         $urlParams = http_build_query([
             'q' => $q,
             'fo' => $fo,
             'f' => $f
         ]);
 
-        // Redirect to the 'userlist' route with the query parameters.
         return redirect()->route('userlist')->with('urlParams', $urlParams);
 
     } catch (\Exception $e) {
-        // Handle any unexpected exceptions or errors here.
-        // You can log the error, display a user-friendly message, or take other actions.
+       
         return redirect()->route('userlist')->with('error', 'An error occurred while processing your request.');
     }
 }
@@ -221,12 +213,12 @@ public function usersearch(Request $request)
 public function generateExcel(Request $request)
 {
     try {
-        // Get the search query (q), filter option (fo), and filter (f) from the request.
+      
         $q = $request->input('q');
         $fo = $request->input('fo');
         $f = $request->input('f');
 
-        // Your database query logic here to fetch the data based on the search and filter parameters
+     
         $franchiseData = User::select('createdate', 'loginid', 'firstname', 'middlename', 'lastname', 'referalid', 'dob', 'emailid', 'mobile', 'fixedline', 'address', 'city', 'state', 'pincode', 'country')
             ->where('tbl_user.firstname', 'LIKE', '%' . $q . '%')
             ->where('tbl_user.lastname', 'LIKE', '%' . $q . '%')
@@ -238,7 +230,7 @@ public function generateExcel(Request $request)
             ->where('tbl_user.city', 'LIKE', '%' . $q . '%')
             ->where('tbl_user.state', 'LIKE', '%' . $q . '%')
             ->where('tbl_user.country', 'LIKE', '%' . $q . '%')
-            // Add more query conditions based on the filter options if needed
+         
             ->orderBy('tbl_user.createdate', 'asc')
             ->get();
 
@@ -263,18 +255,14 @@ public function generateExcel(Request $request)
                 $franchise->country . "\n";
         }
 
-        // Generate a unique filename for the Excel file
         $fileName = 'franchise_data_' . date('Y-m-d_H:i:s') . '.xls';
-
-        // Create an HTTP response with the Excel content and headers
         return response()->make($excelContent, 200, [
             'Content-Type' => 'application/vnd.ms-excel',
             'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
 
     } catch (\Exception $e) {
-        // Handle any unexpected exceptions or errors here.
-        // You can log the error, display a user-friendly message, or take other actions.
+    
         return redirect()->route('userlist')->with('error', 'An error occurred while generating the Excel file.');
     }
 }

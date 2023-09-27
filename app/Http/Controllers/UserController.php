@@ -19,38 +19,33 @@ use Illuminate\Support\Facades\Session;
 
 class UserController extends Controller
 {
-    //
+   /**
+ * Display the user dashboard.
+ *
+ * @return \Illuminate\View\View
+ */
     public function dashboard()
     {
-        // Check if the user is authenticated
+
         if (!Session::has('user_id')) {
-            // Redirect to the login page or perform any other action for unauthenticated users
             return redirect('log-in');
         }
 
-        // Get the user ID from the session
         $uid = Session::get('user_id');
-        // Part 2: Re-Investment
-        // Assuming the user ID is stored in the 'USER' session variable
+
         $loginfo = Log::where('userid', $uid)->orderBy('id', 'DESC')->limit(2)->get();
         $sconfig = config('sconfig');
-        $ret = balance_info($uid, $sconfig); // You need to define the balance_info function or replace it with the equivalent logic in your Laravel app.
-
-
+        $ret = balance_info($uid, $sconfig); 
         if (!$uid) {
-            // Handle the case when the user is not logged in or session data is not available
-            return redirect('login'); // Redirect to login page or any other page as per your application's logic.
+            return redirect('login'); 
         }
-
         $loginfo = Log::where('userid', $uid)->orderBy('id', 'DESC')->limit(2)->get();
         $ret = balance_info($uid, $sconfig);
         $uinfo = User::where('id', $uid)->first(['referalid', 'firstname', 'middlename', 'lastname', 'emailid', 'loginid', 'address', 'city', 'state', 'country', 'pincode', 'mobile', 'accountno', 'createdate']);
         $rinfo = User::where('id', $uinfo->referalid)->first(['firstname', 'middlename', 'lastname', 'loginid']);
-
         $timenow = time();
         $usrinfo = User::where('referalid', $uid)->orderBy('id', 'DESC')->get();
         $drefid = $usrinfo->pluck('id')->toArray();
-
         $tids = [0];
         $ords = [0];
         $tdeposit = Deposit::where('userid', $uid)->where('bActive', 'Y')->where('deposit_type', '!=', 'Re-Invest')->get(['id', 'label']);
@@ -58,11 +53,7 @@ class UserController extends Controller
             $tids[] = $deposit->id;
             $ords[$deposit->id] = $deposit->label;
         }
-
         $trinfo = $this->getTransactionInfo($uid, $tids);
-
-
-        // Return the dashboard view with the retrieved data
         return view('user.dashboard', compact('loginfo', 'ret', 'uinfo', 'rinfo', 'timenow', 'drefid', 'ords', 'trinfo'));
     }
 
@@ -84,14 +75,12 @@ class UserController extends Controller
     ");
         return $trinfo;
     }
-
-    //edit profile page
-    // public function editprofile(){
-    //     return view('user.edit-profile');
-    // }
-
-
-    //update profile()
+/**
+ * Update the user's profile information.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\RedirectResponse
+ */
     public function updateProfile(Request $request)
     {
         if ($request->has('updateprofile')) {
@@ -160,7 +149,12 @@ class UserController extends Controller
 
         return view('user.edit-profile', compact('uinfo', 'family', 'emsg', 'etype'));
     }
-
+/**
+ * Display the user's profile.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\View\View
+ */
     public function profile(Request $request)
     {
         $uid = $request->session()->get('user_id');
@@ -173,17 +167,9 @@ class UserController extends Controller
             }
         }
         $uinfo = User::where('id', $uid)->first();
-        // $family = json_decode($uinfo->family_info, true);
-
-        $ruinfo = DB::table('tbl_user')->where('id', $uinfo->referalid)
+        $ruinfo =  User::where('id', $uinfo->referalid)
           ->select('loginid', 'firstname', 'middlename', 'lastname')->first();
-
         return view('user.profile', compact('uinfo', 'ruinfo', 'uid'));
     }
-
-    //serach filter
-  
-
-
 
 }

@@ -83,10 +83,6 @@ class SupportTicketController extends Controller
                 ->with('success', 'Record(s) has been updated!');
         }
 
-        // Other code for handling messages and ticket details
-        // ...
-
-        // Load the view with the data
         return view('user.support-ticket', compact('cps', 'ticinfo'));
     }
     /**
@@ -107,20 +103,14 @@ class SupportTicketController extends Controller
      */
     public function sendSupportTicket(Request $request)
     {
-        // Define an array of messages to remove from the HTTP_REFERER
+
         $msgs = ["&msg=activated", "&msg=deactivated", "&msg=deleted", "&msg=added", "&msg=updated"];
         $HTTP_REFERER = str_ireplace($msgs, "", $request->server('HTTP_REFERER'));
-
-        // Get the current timestamp using Laravel's Carbon library
         $insertdt = now();
-
-        // Check if the 'send' button is clicked
         if ($request->has('send')) {
             try {
-                // Create a new Ticketing instance
-                $ticket = new Ticketing();
 
-                // Populate the ticket properties
+                $ticket = new Ticketing();
                 $ticket->userId = session('user_id');
                 $ticket->subject = $request->input('subject');
                 $ticket->message = $request->input('message');
@@ -128,39 +118,23 @@ class SupportTicketController extends Controller
                 $ticket->created_at = $insertdt;
                 $ticket->isSolved = 0;
 
-                // Save the new ticket to the database
                 $ticket->save();
-
-                // Retrieve the newly created ticket
                 $tinfo = Ticketing::where('ticketId', $ticket->ticketId)->orderBy('ticketId', 'desc')->first();
-
-                // Prepare image upload information (initially empty)
                 $uploadImg = json_encode([]);
-
-                // Create a new TicketMessage instance
                 $ticketMessage = new TicketMessage();
-
-                // Populate the ticket message properties
                 $ticketMessage->userId = $tinfo->userId;
                 $ticketMessage->ticketId = $tinfo->ticketId;
                 $ticketMessage->message = $request->input('message');
                 $ticketMessage->image = $uploadImg;
                 $ticketMessage->created_at = $insertdt;
-
-                // Save the ticket message to the database
                 $ticketMessage->save();
 
-                // Redirect with a success message
                 return redirect('support-ticket')->with('success', 'New ticket has been added!');
             } catch (\Exception $e) {
-                // Handle any unexpected exceptions that may occur during ticket creation
+
                 return redirect()->back()->with('error', 'An error occurred while adding a new ticket: ' . $e->getMessage());
             }
         }
-
-        // Handle other parts of the code if necessary
-
-        // Redirect to the support ticket page (replace 'support-ticket' with the actual route or view name)
         return redirect('support-ticket');
     }
 
@@ -193,7 +167,7 @@ class SupportTicketController extends Controller
      */
     public function replyToTicket(Request $request)
     {
-        // Validate the request data
+   
         $request->validate([
             'message' => 'required|string',
             'tid' => 'required|numeric',
@@ -202,24 +176,17 @@ class SupportTicketController extends Controller
         $message = $request->input('message');
         $tid = $request->input('tid');
 
-        // Check if the ticket exists
-        $ticket = DB::table('tbl_ticketing')->where('ticketId', $tid)->first();
-
+        $ticket = Ticketing::where('ticketId', $tid)->first();
         if (!$ticket) {
-            // Ticket not found, handle the error (e.g., redirect back with a message)
             return redirect()->back()->with('error', 'Ticket not found.');
         }
-
-        // Insert the message into the database
         DB::table('tbl_ticket_messgae')->insert([
-            'userId' => session::get('user_id'), // Assuming you're using authentication
+            'userId' => session::get('user_id'), 
             'ticketId' => $tid,
             'message' => $message,
-            'image' => json_encode([]), // Empty JSON array
-            'created_at' => now(), // Current timestamp
+            'image' => json_encode([]), 
+            'created_at' => now(), 
         ]);
-
-        // Redirect back with a success message
         return redirect()->back()->with('success', 'Reply sent successfully.');
     }
 }

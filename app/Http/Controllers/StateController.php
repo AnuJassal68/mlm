@@ -184,24 +184,20 @@ class StateController extends Controller
     public function addcities(Request $request, $id)
     {
         try {
-            // Validate the incoming request data
+  
             $pid = $request->id;
 
-            // Create a new City instance and fill it with the validated data
             $city = new Country();
             $city->etype = 'City';
             $city->parentid = $pid;
             $city->title = $request->input('title');
             $city->code = $request->input('code');
             $city->pincodes = $request->input('pincodes');
-            $city->bActive = $request->has('bactive') ? 'Y' : 'N'; // Default to 'N' if not provided
+            $city->bActive = $request->has('bactive') ? 'Y' : 'N'; 
             $city->save();
-
-            // Save the new city to the database
 
             return redirect()->route('cities', ['id' => $pid])->with('success', 'City record has been added successfully.');
         } catch (\Exception $e) {
-            // Handle any unexpected exceptions that may occur during the operation
             return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
         }
     }
@@ -290,9 +286,7 @@ class StateController extends Controller
     {
         try {
         
-           $city = DB::table('tbl_country_state_city')->find($id);
-    
-          
+           $city = Country::find($id);  
             if (!$city) {
                 return redirect()->back()->with('error', 'City not found.');
             }
@@ -303,16 +297,11 @@ class StateController extends Controller
                 'pincodes' => $request->input('pincodes'),
                 'bActive' => $request->has('bactive') ? 'Y' : 'N',
             ];
-    
-          
-            if (!empty($countryData)) {
-               
-                $updatedRows = DB::table('tbl_country_state_city')
-                    ->where('id', $id) 
-                    ->update($countryData);
-    
-                
-                if ($updatedRows > 0) {
+            if (!empty($countryData)) {               
+                $updatedRows = Country::
+                    where('id', $id) 
+                    ->update($countryData);            
+              if ($updatedRows > 0) {
                     return redirect()->back()->with('success', 'City updated successfully.');
                 } else {
                    
@@ -327,9 +316,7 @@ class StateController extends Controller
             return redirect()->back()->with('error', 'An error occurred while updating the city: ' . $e->getMessage());
         }
     }
-    
-
-
+ 
    /**
  * Update a state record.
  *
@@ -340,19 +327,16 @@ class StateController extends Controller
 public function stateupdate(Request $request, $id)
 {
     try {
-        // Validate the form data
+     
         $validatedData = $request->validate([
-            'title' => 'required|string', // Add any additional validation rules here
+            'title' => 'required|string',
         ]);
-        // Get the state record by ID
-      
+
        $state = Country::find($id);
         if (!$state) {
-            // If the state record is not found, redirect back with an error message
+          
             return redirect()->back()->with('error', 'State not found.');
-        }
-
-        // Update state data with the validated form data
+        }     
         DB::table('tbl_country_state_city')
         ->where('id',$state->id)
         ->update([
@@ -360,10 +344,9 @@ public function stateupdate(Request $request, $id)
             'bActive' => $request->has('bactive') ? 'Y' : 'N',
         ]);
 
-        // Redirect back with a success message
         return redirect()->back()->with('success', 'State updated successfully.');
     } catch (\Exception $e) {
-        // Handle any exceptions that may occur during the update process
+
         return redirect()->back()->with('error', 'An error occurred while updating the state: ' . $e->getMessage());
     }
 }

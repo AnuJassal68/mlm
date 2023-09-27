@@ -42,7 +42,7 @@ class ChangePasswordController extends Controller
                 $tlen = strlen($request->npassword);
 
                 if ($tlen > 5) {
-                    // Retrieve the admin user's login password
+                  
                     $admin = auth::guard('admin')->user();
 
                     if ($admin && $admin->loginpassword == $request->cpassword) {
@@ -94,19 +94,16 @@ class ChangePasswordController extends Controller
     public function adminlogindata(Request $request)
     {
         try {
-            // Retrieve the admin user by 'loginid' from the request
-            $admin = Admin::where('loginid', $request->input('loginid'))->first();
-    
-            if ($admin && Hash::check($request->input('loginpassword'), $admin->loginpassword)) {
-                // Admin is authenticated, log in the admin
+      
+            $admin = Admin::where('loginid', $request->input('loginid'))->first(); 
+            if ($admin && Hash::check($request->input('loginpassword'), $admin->loginpassword)) {         
                 Auth::guard('admin')->login($admin);
-                return redirect('admindashboard'); // Redirect to the admin dashboard
+                return redirect('admindashboard'); 
             } else {
-                // Authentication failed, redirect back with an error message
                 return redirect()->back()->with('error', 'Your credentials do not match our records.');
             }
         } catch (\Exception $e) {
-            // Handle any unexpected exceptions that may occur during the operation
+           
             return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
         }
     }
@@ -121,17 +118,11 @@ class ChangePasswordController extends Controller
      */
     public function logout(Request $request)
     {
-        try {
-            // Log out the admin user from the 'admin' guard
+        try {        
             Auth::guard('admin')->logout();
-
-            // Invalidate the user's session
             $request->session()->invalidate();
-
-            // Redirect to the admin login page
             return redirect('/adminlogin');
-        } catch (\Exception $e) {
-            // Handle any unexpected exceptions that may occur during the operation
+        } catch (\Exception $e) {         
             return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
         }
     }
@@ -146,18 +137,13 @@ class ChangePasswordController extends Controller
     public function admindashboard(Request $request)
     {
         try {
-            // Get the total number of users
+         
             $uinfo = User::count();
-
-            // Calculate and format the total deposit amount
             $formattedValue = Deposit::where('bActive', 'Y')->sum('deposit');
             $dinfo = number_format($formattedValue, 2);
-
-            // Calculate and format the total spent amount
             $sinfos = Spent::sum('processamt');
             $sinfo = number_format($sinfos, 2);
 
-            // Retrieve query parameters from the request
             $vw = $request->input('view');
             $q = $request->input('q');
             $a = $request->input('a');
@@ -166,19 +152,18 @@ class ChangePasswordController extends Controller
             $dt = $request->input('dt');
             $limit = 5;
 
-            // Initialize an empty array for query results
+         
             $qinfo = [];
 
-            // Create a query for ActivityLog where counter is '2'
+         
             $query = ActivityLog::where('counter', '2');
 
-            // Order the results by id in descending order
+         
             $qinfo = $query->orderBy('id', 'desc')->get();
 
-            // Pass the $qinfo variable and other parameters to the view
             return view('admin.admindashboard', compact('qinfo', 'vw', 'q', 'a', 's', 'df', 'dt', 'dinfo', 'sinfo', 'uinfo'));
         } catch (\Exception $e) {
-            // Handle any unexpected exceptions that may occur during the operation
+           
             return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
         }
     }

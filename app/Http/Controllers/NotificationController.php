@@ -8,6 +8,12 @@ use Illuminate\Support\Facades\Session;
 use App\Models\Notification;
 class NotificationController extends Controller
 {
+    /**
+ * Display the notification index page.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\View\View
+ */
     public function notificationindex(Request $request)
     {
         $emsg = Session::get('emsg');
@@ -24,7 +30,12 @@ class NotificationController extends Controller
             $f = $request->query('f');
         return view('admin.notification', compact('rinfo', 'limit', 'emsg', 'etype','fullset','q','f'));
     }
-
+/**
+ * Display the notification index page.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\View\View
+ */
     public function showAddEditForm($id = null)
     {
         $binfo = null;
@@ -37,7 +48,13 @@ class NotificationController extends Controller
         $fullset = 'Y'; 
         return view('admin.editnotification', compact('binfo','fullset'));
     }
-
+/**
+ * Update or create a notification record.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @param  int|null  $id
+ * @return \Illuminate\Http\RedirectResponse
+ */
     public function update(Request $request, $id = null)
     {
         $request->validate([
@@ -66,7 +83,12 @@ class NotificationController extends Controller
 
         return redirect()->route('notifications.index')->with('message', $id ? 'Record has been updated!' : 'New record has been added!');
     }
-
+/**
+ * Activate selected notifications.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\RedirectResponse
+ */
     public function activateSelected(Request $request)
     {
         $selectedIds = $request->input('del');
@@ -85,7 +107,12 @@ class NotificationController extends Controller
 
         return redirect()->route('notifications.index');
     }
-
+/**
+ * deactivate selected notifications.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\RedirectResponse
+ */
     public function deactivateSelected(Request $request)
     {
         $selectedIds = $request->input('del');
@@ -104,7 +131,12 @@ class NotificationController extends Controller
 
         return redirect()->route('notifications.index');
     }
-
+/**
+ * delete selected notifications.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\RedirectResponse
+ */
     public function deleteSelected(Request $request)
     {
         $selectedIds = $request->input('del');

@@ -18,14 +18,10 @@ class SettingController extends Controller
     {
         $emsg = null;
         $etype = null;
-
-
         if (request()->has('msg') && request('msg') === 'updated') {
             $emsg = "Setting has been Updated!";
             $etype = "success";
         }
-
-   
         $setinfo = Setting::where('settype', 'setting')->get();
         $fullset = 'Y';
 
