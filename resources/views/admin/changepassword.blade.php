@@ -11,7 +11,7 @@
                     <div class="box box-info">
                         <div class="box-body">
                             <h5 class="text-center text-primary"> Change Password </h5>
-                           
+
                             @if (session('success'))
                             <div class="alert alert-success">{{ session('success') }}</div>
                             @elseif (session('error'))

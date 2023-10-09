@@ -9,19 +9,10 @@
             <div class="card">
                 <div class="card-body">
                     <h5>Income Settings</h5>
-
-
-
-
-               
                         <!-- general form elements disabled -->
                         <div class="box box-warning">
                             <div class="box-body">
-                                @if(session('emsg'))
-                                <div class="alert alert-{{ session('etype', 'info') }}">
-                                    {{ session('emsg') }}
-                                </div>
-                                @endif
+                               
                                 <form role="form" method="post" action="{{ url('/income-setting') }}">
                                     @csrf
                                     <!-- text input -->

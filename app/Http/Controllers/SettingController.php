@@ -71,6 +71,6 @@ class SettingController extends Controller
             ActivityLog::create($insert);
         }
 
-        return redirect()->route('setting-index')->with('emsg', 'Setting has been Updated!')->with('etype', 'success');
+        return redirect()->route('setting-index')->with('success', 'Setting has been Updated!');
     }
 }

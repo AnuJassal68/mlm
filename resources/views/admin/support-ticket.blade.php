@@ -274,7 +274,7 @@
                         var replyMessage = $('#tmessage').val();
                         console.log(ticketId)
                         $.ajax({
-                            url: '/process-ticket'
+                            url: '{{url("/process-ticket")}}'
                             , method: 'POST'
                             , data: {
                                 _token: window.csrfToken
@@ -284,8 +284,10 @@
                             }
                             , success: function(response) {
                                 if (response.success) {
-                                    console.log('Ticket reply successful.');
                                     $('#ticketModal').modal('hide');
+                                    setTimeout(function() {
+                                        location.reload();
+                                    }, 100);
                                 } else {
                                     console.error('Ticket reply failed: ' + response.message);
                                 }
@@ -310,8 +312,10 @@
                             }
                             , success: function(response) {
                                 if (response.success) {
-                                    console.log('Ticket moved to pending.');
-                                    $('#ticketModal').modal('hide'); // Close the modal or perform other actions
+                                   $('#ticketModal').modal('hide');
+                                    setTimeout(function() {
+                                        location.reload();
+                                    }, 100); // Close the modal or perform other actions
                                 } else {
                                     console.error('Failed to move ticket to pending.');
                                 }

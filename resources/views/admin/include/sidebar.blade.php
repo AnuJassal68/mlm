@@ -5,7 +5,7 @@
       <nav class="sidebar sidebar-offcanvas" id="sidebar">
         <ul class="nav">
           <li class="nav-item">
-            <a class="nav-link" href="{{('/admindashboard')}}">
+            <a class="nav-link" href="{{url('/admindashboard')}}">
               <i class="mdi mdi-grid-large menu-icon"></i>
               <span class="menu-title text-dark bigger-span ">Dashboard</span>
             </a>
@@ -24,8 +24,8 @@
             </a>
             <div class="collapse" id="ui-basic">
               <ul class="nav flex-column sub-menu">
-                <li class="nav-item"> <a class="nav-link" href="{{route('setting-index')}}">site settings</a></li>
-                <li class="nav-item"> <a class="nav-link" href="{{route('income-setting')}}">Income setting</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{{url('/setting-index')}}">site settings</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{{url('income-setting')}}">Income setting</a></li>
                 <li class="nav-item"> <a class="nav-link" href="{{url('countries')}}">country/state/cities</a></li>
                 <li class="nav-item"> <a class="nav-link" href="{{route('notifications.index')}}">Notifications</a></li>
                

@@ -66,6 +66,7 @@
                                         <th width="18%">Registration</th>
                                         <th width="22%">$ Investment</th>
                                         <th width="16%">Login Status</th>
+                                        <th width="16%"> Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -104,9 +105,27 @@
                                             @endif
                                         </td>
                                         <td>
-                                            Account: {{ $result['bActive'] == 'Y' ? 'Enabled' : 'Disabled' }}<br>
+                                            @if ($f == 'ac_active')
+                                               @if ($result['bActive'] === 'Y')
+                                                  Account: Enabled
+                                               @endif
+                                            @elseif($f == 'ac_inactive')
+                                                 @if ($result['bActive'] === 'N')
+                                                  Account: Disabled
+                                               @endif
+                                            @else
+                                      Account: {{ $result['bActive'] === 'Y' ? 'Enabled' : 'Disabled'}}
+
+                                            @endif
+                                            <br>
                                             Email-Id: {{ $result['bemail'] == '1' ? 'Verified' : 'Not Verified' }}
                                         </td>
+                                        <td>
+                                        {{ $result['bActive'] === 'Y' ? 'Y' : 'N' }}
+                                        </td>
+
+
+
                                     </tr>
                                     @endforeach
 
@@ -142,7 +161,7 @@
             });
         }
     });
-//sweet alert function
+    //sweet alert function
     function confirmAction(event, action) {
         event.preventDefault();
 

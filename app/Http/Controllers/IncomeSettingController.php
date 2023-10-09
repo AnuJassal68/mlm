@@ -70,6 +70,6 @@ class IncomeSettingController extends Controller
             ActivityLog::create($insert);
         }
 
-        return redirect()->route('income-setting')->with('emsg', 'Income Setting has been Updated!')->with('etype', 'success');
+        return redirect()->route('income-setting')->with('success', 'Income Setting has been Updated!');
     }
 }

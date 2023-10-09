@@ -24,10 +24,10 @@ class FranchiseController extends Controller
     {
         $timenow = time();
     
-        $q = $request->input('q');
+       $q = $request->input('q');
         $fo = $request->input('fo');
-        $qry = $setqry = '';
-        
+           $qry = $setqry = '';
+        // dd($q);
         if ($fo == 'deg-1') {
             $qry .= $setqry .= " AND (tbl_user.rp_designation = '1') ";
         } elseif ($fo == 'deg-2') {
@@ -56,23 +56,30 @@ class FranchiseController extends Controller
         $pt = $f = $request->input('f');
         
         if (!empty($pt)) {
+            // if ($pt == 'ac_active') {
+            //     // $setqry .= " AND tbl_user.packageid > 0 ";
+            //     $setqry .= '';
+            // } elseif ($pt == 'ac_inactive') {
+            //     // $setqry .= " AND tbl_user.packageid = 0 ";
+            //     $setqry .= '';
+            // } elseif ($pt == 'ac_active') {
             if ($pt == 'ac_active') {
-                $setqry .= " AND tbl_user.packageid > 0 ";
-            } elseif ($pt == 'ac_inactive') {
-                $setqry .= " AND tbl_user.packageid = 0 ";
-            } elseif ($pt == 'lo_active') {
                 $setqry .= " AND tbl_user.bActive = 'Y' ";
-            } elseif ($pt == 'lo_inactive') {
+            } elseif ($pt == 'ac_inactive') {
                 $setqry .= " AND tbl_user.bActive = 'N' ";
             } elseif ($pt == 'dormant') {
                 $setqry .= " AND tbl_user.bdormant = 'Y' ";
             }
         }
+
+        
         
  
         $degs = array(1 => "IR Consultant", 2 => "Ex Officer", 3 => "Manager");
-           $qinfo = getquery("tbl_user", $setqry . "  ORDER BY  id DESC ", "tbl_user.id,tbl_user.referalid,tbl_user.did,tbl_user.loginid,tbl_user.firstname,tbl_user.middlename,tbl_user.lastname,tbl_user.bActive,tbl_user.createdate,tbl_user.aboutme,tbl_user.bemail", "Y", "Ya");
-         $refinfo = $refids = array();
+
+       $qinfo = getquery("tbl_user", $setqry . "  ORDER BY  id DESC ", "tbl_user.id,tbl_user.referalid,tbl_user.did,tbl_user.loginid,tbl_user.firstname,tbl_user.middlename,tbl_user.lastname,tbl_user.bActive,tbl_user.createdate,tbl_user.aboutme,tbl_user.bemail", "Y", "Ya");
+          
+       $refinfo = $refids = array();
 
        $refids = []; 
 

@@ -159,6 +159,7 @@
     </div>
 </section>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
     window.csrfToken = "{{ csrf_token() }}";
 
@@ -169,7 +170,7 @@
             url: 'get-closed-ticket-data/' + ticketId
             , method: 'GET'
             , success: function(response) {
-                console.log(response)
+                console.log(response);
                 if (response.ret) {
                     var modalContent = $('<div class="modal-content"></div>');
                     var userParts = response.user.split(' ');
@@ -177,14 +178,14 @@
                     var userId = parseInt(userIdPart);
 
                     var modalHeader = $('<div class="modal-header"></div>');
-                    
+
                     modalHeader.append('<h4 class="modal-title" id="myModalLabel">Ticket <span id="uinfo_v"> : ' + response.user + '</span></h4>');
                     modalContent.append(modalHeader);
 
                     var modalBody = $('<div class="modal-body"></div>');
                     var timelineUl = $('<ul class="" ></ul>');
-
                     response.ret.forEach(function(message) {
+                        console.log(response);
                         var timelineItem = $('<li><div class="timeline-item"></div></li>');
                         var timelineItemDiv = timelineItem.find('.timeline-item');
 
@@ -205,21 +206,9 @@
                             return dateObj.toLocaleDateString('en-US', options);
                         }
 
-                        if (message && message.userId === 1) {
-                            timelineItemDiv.append('<h3 class="timeline-header"><a href="#">Support Team</a></h3>');
-                              var editButton = $('<button type="button" class="btn btn-xs btn-warning ecmsg m-1" data-message-id="' + message.ticketMessageId + '">Edit</button>');
-                            var cancelButton = $('<button type="button" class="btn btn-xs btn-danger dnone ccmsg m-1" data-message-id="' + message.ticketMessageId + '">Cancel</button>');
-                            var updateButton = $('<button type="button" class="btn btn-xs btn-success dnone ucmsg m-1" data-message-id="' + message.ticketMessageId + '">Update</button>');
-                                  var editTextarea = $('<textarea class="form-control edit-textarea mt-2 mb-2" name="msg" style="height:100px; display:none;"></textarea>');
+                        var senderName = (message.userId == 1) ? 'Support Team' : response.user;
 
-                            // Display the normal message
-                            var messageDiv = $('<div class="timeline-message">' + message.message + '</div>');
-                            timelineItemDiv.append( editButton, cancelButton, updateButton, editTextarea);
-                        } else {
-                           timelineItemDiv.append('<h3 class="timeline-header"><a href="#">' + response.user + '</a></h3>');
-                           
-                        }
-
+                        timelineItemDiv.append('<h3 class="timeline-header"><a href="#">' + senderName + '</a></h3>');
 
                         var timelineFooter = $('<div class="timeline-footer"></div>');
                         var currentTicketMessageId = message.ticketMessageId;
@@ -227,6 +216,7 @@
                         timelineItemDiv.append(timelineFooter);
                         timelineUl.append(timelineItem);
                     });
+
 
                     modalBody.append('<div id="ticket_list" style="height:250px;overflow:auto"></div>');
                     modalBody.find('#ticket_list').append(timelineUl);
@@ -239,7 +229,6 @@
                     var rowFooterDiv = $('<div class="row"></div>');
                     var col6FooterDiv = $('<div class="col-xs-6"></div>');
                     col6FooterDiv.append('<input type="hidden" name="ptype" id="ptype" value="0">');
-
 
                     var pendingButton = $('<input type="button" name="pendingticket" value="Move to Pending" id="pendingticket" class="btn btn-danger pull-left">');
 
@@ -271,18 +260,16 @@
                     col6FooterDiv.append(pendingButton);
                     rowFooterDiv.append(col6FooterDiv);
                     modalFooter.append(rowFooterDiv);
-                     var closeButton = $('<button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>');
+                    var closeButton = $('<button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>');
 
-         
-                closeButton.on('click', function() {
-                    $('#ticketModal').modal('hide');
-                });
+                    closeButton.on('click', function() {
+                        $('#ticketModal').modal('hide');
+                    });
 
-                modalHeader.append(closeButton);
-            
+                    modalHeader.append(closeButton);
+
                     modalContent.append(modalFooter);
 
-                
                     $('#ticketModal').find('.modal-content').html(modalContent);
                     $('#ticketModal').modal('show');
                 }
@@ -296,7 +283,6 @@
         var messageDiv = timelineItemDiv.find('.timeline-message');
         var editTextarea = timelineItemDiv.find('.edit-textarea');
 
-
         editButton.hide();
         editButton.siblings('.ccmsg, .ucmsg').show();
         messageDiv.hide();
@@ -304,15 +290,12 @@
         editTextarea.val(messageDiv.text()).show().prop('disabled', false);
     });
 
-
-
     $(document).on('click', '.ccmsg', function() {
         var cancelButton = $(this);
         var timelineItemDiv = cancelButton.closest('.timeline-item');
         var messageDiv = timelineItemDiv.find('.timeline-message');
         var editTextarea = timelineItemDiv.find('.edit-textarea');
 
-      
         cancelButton.hide();
         cancelButton.siblings('.ecmsg').show();
         cancelButton.siblings('.ucmsg').hide();
@@ -320,43 +303,42 @@
         editTextarea.hide().prop('disabled', true);
     });
 
-   
-$(document).on('click', '.ucmsg', function() {
-    var updateButton = $(this);
-    var messageId = updateButton.data('message-id');
-    console.log(messageId)
-    var timelineItemDiv = updateButton.closest('.timeline-item');
-    var messageDiv = timelineItemDiv.find('.timeline-message');
-    var editTextarea = timelineItemDiv.find('.edit-textarea');
-    var updatedMessage = editTextarea.val();
+    $(document).on('click', '.ucmsg', function() {
+        var updateButton = $(this);
+        var messageId = updateButton.data('message-id');
+        var timelineItemDiv = updateButton.closest('.timeline-item');
+        var messageDiv = timelineItemDiv.find('.timeline-message');
+        var editTextarea = timelineItemDiv.find('.edit-textarea');
+        var updatedMessage = editTextarea.val();
 
-    $.ajax({
-        url: '/update-ticket-message/' + messageId, 
-        data: {
-            _token: window.csrfToken,
-            msg: updatedMessage
-        },
-        success: function(response) {
-            if (response.success) {
-                console.log('Ticket message updated successfully.');
-              
-                messageDiv.text(updatedMessage);
-              
-                updateButton.hide();
-                updateButton.siblings('.ccmsg, .ecmsg').show();
-                messageDiv.show();
-                editTextarea.hide().prop('disabled', true);
-              
-            } else {
-                console.error('Failed to update ticket message.');
+        $.ajax({
+            url: '/update-ticket-message/' + messageId
+            , data: {
+                _token: window.csrfToken
+                , msg: updatedMessage
             }
-        }
+            , success: function(response) {
+                if (response.success) {
+                    console.log('Ticket message updated successfully.');
+
+                    messageDiv.text(updatedMessage);
+
+                    updateButton.hide();
+                    updateButton.siblings('.ccmsg, .ecmsg').show();
+                    messageDiv.show();
+                    editTextarea.hide().prop('disabled', true);
+
+                } else {
+                    console.error('Failed to update ticket message.');
+                }
+            }
+        });
     });
-});
-
-
 
 </script>
+
+
+
 
 
 

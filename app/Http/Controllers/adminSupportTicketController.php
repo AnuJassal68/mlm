@@ -369,25 +369,28 @@ public function updateTicketMessage(Request $request, $id)
     //reply ticket module
     public function processTicket(Request $request)
     {
+
+      
         $timenow = now();
-        // Assuming 'ticketId' and 'tmessage' are the input field names
+       
         $ticketMessage = new TicketMessage();
         $ticketMessage->ticketId = $request->input('ticketId');
-        $ticketMessage->userId = $request->userId;
+      $ticketMessage->userId =  auth()->guard('admin')->id();
         $ticketMessage->message = $request->input('tmessage');
+        // dd(        $ticketMessage->message);
         if ($ticketMessage) {
-            // Update ticket status as solved
+         
             Ticketing::where('ticketId', $ticketMessage->ticketId)->update([
                 'updated_at' => $timenow,
                 'isSolved' => 1
             ]);
         } elseif ($ticketMessage == 'pending') {
-            // Update ticket status as pending
+          
             Ticketing::where('ticketId', $ticketMessage->ticketId)->update([
                 'isSolved' => 2
             ]);
         } elseif ($ticketMessage == 'assign') {
-            $mode = $request->input('mode'); // Assuming 'mode' is the input field name
+            $mode = $request->input('mode'); 
 
 
             Ticketing::where('ticketId', $ticketMessage->ticketId)->update([

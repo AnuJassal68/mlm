@@ -518,8 +518,8 @@ class DepositController extends Controller
           $sconfig = config('sconfig');
          $invests = $sconfig['investment'];
          $mindeposit = min($invests);
-        return $use = LaraBlockIo::test();
-        dd($use);
+        $use = LaraBlockIo::test();
+       
             if ($request->deposit >= 10 && $request->deposit <= 99) {
                 $daily_percentage = 2.5;
             } elseif ($request->deposit >= 100 && $request->deposit <= 999) {

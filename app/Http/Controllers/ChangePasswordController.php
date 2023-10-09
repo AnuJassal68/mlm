@@ -36,42 +36,36 @@ class ChangePasswordController extends Controller
     {
         $emsg = '';
         $etype = 'danger';
-
-        if ($request->has('changeloginpassword')) {
-            if ($request->filled(['npassword', 'rnpassword'])) {
-                $tlen = strlen($request->npassword);
-
-                if ($tlen > 5) {
-                  
-                    $admin = auth::guard('admin')->user();
-
-                    if ($admin && $admin->loginpassword == $request->cpassword) {
-                        if ($request->npassword == $request->rnpassword) {
-                            // Update the login password
-                            // Hash the new password before saving
-                            $admin->loginpassword = bcrypt($request->rnpassword);
-
-                            $admin->save();
-
-                            return redirect()->route('changepassword', ['msg' => 'dn'])
-                                ->with('emsg', 'Login Password has been changed successfully!')
-                                ->with('etype', 'success');
-                        } else {
-                            $emsg = "Login Password and re-entered login password do not match.";
-                        }
-                    } else {
-                        $emsg = "Invalid Current Password. Please enter a valid current password to continue!";
-                    }
-                } else {
-                    $emsg = "Your login password must be 6 to 32 characters long!";
-                }
+    
+        // First, validate the request data
+        $request->validate([
+            'cpassword' => 'required',
+            'npassword' => 'required|min:6', // Minimum length of 6 characters
+            'rnpassword' => 'required|same:npassword', // Should match 'npassword'
+        ]);
+    
+        // Retrieve the authenticated admin user
+        $admin = auth()->guard('admin')->user();
+    
+        // Check if an admin user is authenticated
+        if ($admin) {
+            // Check if the current password matches the one provided in the request
+            if (password_verify($request->cpassword, $admin->loginpassword)) {
+                // Update the login password with the new hashed password
+                $admin->loginpassword = bcrypt($request->npassword);
+                $admin->save();
+    
+                return redirect()->route('changepassword')->with('success', 'Login Password has been changed successfully!');
             } else {
-                $emsg = "All Fields are mandatory!";
+                $emsg = "Invalid Current Password. Please enter a valid current password to continue!";
             }
+        } else {
+            $emsg = "Admin not authenticated.";
         }
-
-        return redirect()->back()->with('emsg', $emsg)->with('etype', $etype);
+    
+        return redirect()->back()->with('error', 'Admin not authenticated.');
     }
+    
     /**
  * Display a login page.
  *

@@ -852,9 +852,11 @@ function getquery($table, $showtype, $fetch = "*", $paging = "N", $debug = "N")
         ->whereRaw('1 ' . $showtype);
 
     if ($debug == 'Y') {
-        echo $query->toSql();
+        $query->toSql();
+        
     }
-
+    // echo $query->toSql();
+    //     exit;
    $result= $query->get();
     return createresult($result,$fetch,$debug = "Y");
     

@@ -31,7 +31,7 @@ use App\Http\Controllers\StateController;
 */
 
 
-Route::get('/', [HomeController::class,'index']);
+Route::any('/', [HomeController::class,'index']);
 
 Route::get('/log-in', [LoginController::class, 'showLoginForm']);
 Route::any('/login', [LoginController::class, 'login']);
@@ -51,39 +51,37 @@ Route::get('/faq', [HomeController::class,'faq']);
 
 
 Route::middleware('auth.dashboard')->group(function () {
-Route::get('dashboard', [UserController::class,'dashboard'])->name('user/dashboard');
+    Route::get('dashboard', [UserController::class,'dashboard'])->name('user/dashboard');
 
-Route::get('profile', [UserController::class,'profile'])->name('profile');
-Route::any('updateProfile', [UserController::class,'updateProfile'])->name('updateProfile');
-
-
-Route::post('/submit_deposit', [DepositController::class, 'submitDeposit'])->name('submit_deposit');
-Route::any('/deposit', [DepositController::class, 'index'])->name('deposit');
-Route::any('/re-investment', [DepositController::class, 'reinvestment'])->name('re-investment');
-Route::any('/my-investment', [DepositController::class, 'myinvestment'])->name('my-investment');
-Route::any('/my-incentive', [DepositController::class, 'incentive'])->name('my-incentive');
-Route::any('/my-deposits', [DepositController::class, 'viewPendingDeposits'])->name('my-deposits');
-Route::any('/directs', [DepositController::class, 'directReferrals'])->name('directs');
-Route::any('/network', [DepositController::class, 'viewNetwork'])->name('network');
-Route::any('/incentive', [DepositController::class, 'dailyincentive'])->name('incentive');
-Route::any('/level-incentive', [DepositController::class, 'levelincentive'])->name('level-incentive');
-Route::any('/request-Payments', [DepositController::class, 'requestPayments'])->name('request-withdraw');
-Route::any('/all-statements', [DepositController::class, 'allstatement'])->name('all-statements');
-Route::any('/processDeposit', [DepositController::class, 'processDeposit'])->name('processDeposit');
-Route::any('/submit-Deposit', [DepositController::class, 'submitDeposit'])->name('submit-Deposit');
-
-//support ticket controller
-Route::any('/new-ticket', [SupportTicketController::class, 'newticket'])->name('new-ticket');
-Route::any('/support-ticket', [SupportTicketController::class, 'supporticket'])->name('support-ticket');
-Route::any('/send-ticket', [SupportTicketController::class, 'sendSupportTicket'])->name('send-ticket');
-Route::get('/filesupport', [SupportTicketController::class, 'filesupport'])->name('filesupport');
-Route::any('/replyToTicket', [SupportTicketController::class, 'replyToTicket'])->name('replyToTicket');
-Route::any('/setting-index', [SettingController::class, 'settingindex'])->name('setting-index');
-Route::post('/setting', [SettingController::class, 'updateSettings'])->name('settings.update');
+    Route::get('profile', [UserController::class,'profile'])->name('profile');
+    Route::any('updateProfile', [UserController::class,'updateProfile'])->name('updateProfile');
 
 
-Route::get('/income-setting', [IncomeSettingController::class, 'showIncomeSettingsForm'])->name('income-setting');
-Route::post('/income-setting', [IncomeSettingController::class, 'updateIncomeSettings'])->name('update-setting');
+    Route::post('/submit_deposit', [DepositController::class, 'submitDeposit'])->name('submit_deposit');
+    Route::any('/deposit', [DepositController::class, 'index'])->name('deposit');
+    Route::any('/re-investment', [DepositController::class, 'reinvestment'])->name('re-investment');
+    Route::any('/my-investment', [DepositController::class, 'myinvestment'])->name('my-investment');
+    Route::any('/my-incentive', [DepositController::class, 'incentive'])->name('my-incentive');
+    Route::any('/my-deposits', [DepositController::class, 'viewPendingDeposits'])->name('my-deposits');
+    Route::any('/directs', [DepositController::class, 'directReferrals'])->name('directs');
+    Route::any('/network', [DepositController::class, 'viewNetwork'])->name('network');
+    Route::any('/incentive', [DepositController::class, 'dailyincentive'])->name('incentive');
+    Route::any('/level-incentive', [DepositController::class, 'levelincentive'])->name('level-incentive');
+    Route::any('/request-Payments', [DepositController::class, 'requestPayments'])->name('request-withdraw');
+    Route::any('/all-statements', [DepositController::class, 'allstatement'])->name('all-statements');
+    Route::any('/processDeposit', [DepositController::class, 'processDeposit'])->name('processDeposit');
+    Route::any('/submit-Deposit', [DepositController::class, 'submitDeposit'])->name('submit-Deposit');
+
+    //support ticket controller
+    Route::any('/new-ticket', [SupportTicketController::class, 'newticket'])->name('new-ticket');
+    Route::any('/support-ticket', [SupportTicketController::class, 'supporticket'])->name('support-ticket');
+    Route::any('/send-ticket', [SupportTicketController::class, 'sendSupportTicket'])->name('send-ticket');
+    Route::get('/filesupport', [SupportTicketController::class, 'filesupport'])->name('filesupport');
+    Route::any('/replyToTicket', [SupportTicketController::class, 'replyToTicket'])->name('replyToTicket');
+
+
+
+    
 
 });
 
@@ -160,5 +158,9 @@ Route::middleware(['admin'])->group(function () {
     Route::post('/payouts/search', [PayoutController::class, 'search'])->name('payouts.search');
     Route::any('/payouts/excel', [PayoutController::class, 'excel'])->name('payouts.excel');
     Route::post('/payouts/reset', [PayoutController::class, 'reset'])->name('payouts.reset');
+    Route::any('/setting-index', [SettingController::class, 'settingindex'])->name('setting-index');
+    Route::post('/setting', [SettingController::class, 'updateSettings'])->name('settings.update');
+    Route::get('/income-setting', [IncomeSettingController::class, 'showIncomeSettingsForm'])->name('income-setting');
+    Route::post('/income-setting', [IncomeSettingController::class, 'updateIncomeSettings'])->name('update-setting');
 });
 Route::any('/logout', [ChangePasswordController::class,'logout'])->name('logout');

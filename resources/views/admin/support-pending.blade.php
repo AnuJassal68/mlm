@@ -156,14 +156,14 @@
         var ticketId = $(this).attr('href').substring(1);
         $.ajax({
             url: 'get-ticket-details/' + ticketId
-            , method: 'GET',
-            success: function(response) {
+            , method: 'GET'
+            , success: function(response) {
                 if (response.ret) {
                     var modalContent = $('<div class="modal-content"></div>');
-                    var userParts = response.user.split(' '); 
-                    var userIdPart = userParts[userParts.length - 1]; 
-                    var userId = parseInt(userIdPart);            
-                    var modalHeader = $('<div class="modal-header"></div>');               
+                    var userParts = response.user.split(' ');
+                    var userIdPart = userParts[userParts.length - 1];
+                    var userId = parseInt(userIdPart);
+                    var modalHeader = $('<div class="modal-header"></div>');
                     modalHeader.append('<h4 class="modal-title" id="myModalLabel">Ticket <span id="uinfo_v"> : ' + response.user + '</span></h4>');
                     modalContent.append(modalHeader);
                     var modalBody = $('<div class="modal-body"></div>');
@@ -171,8 +171,10 @@
                     response.ret.forEach(function(message) {
                         var timelineItem = $('<li><div class="timeline-item"></div></li>');
                         var timelineItemDiv = timelineItem.find('.timeline-item');
+
                         var formattedDateTime = formatDateTime(message.created_at);
                         timelineItemDiv.append('<span class="time"><i class="fa fa-clock-o"></i> ' + formattedDateTime + '</span>');
+
                         function formatDateTime(dateTime) {
                             var dateObj = new Date(dateTime);
                             var options = {
@@ -182,11 +184,13 @@
                                 , hour: 'numeric'
                                 , minute: 'numeric'
                                 , second: 'numeric'
-                                , hour12: false, 
-                            };
+                                , hour12: false
+                            , };
                             return dateObj.toLocaleDateString('en-US', options);
                         }
-                        if (message && message.userId === 1) {
+
+                        if (message && message.userId == 1) {
+                            // Message is from the admin (user ID <= 1)
                             timelineItemDiv.append('<h3 class="timeline-header"><a href="#">Support Team</a></h3>');
 
                             var editButton = $('<button type="button" class="btn btn-xs btn-warning ecmsg m-1" data-message-id="' + message.ticketMessageId + '">Edit</button>');
@@ -196,13 +200,18 @@
                             var messageDiv = $('<div class="timeline-message">' + message.message + '</div>');
                             timelineItemDiv.append(messageDiv, editButton, cancelButton, updateButton, editTextarea);
                         } else {
+                            // Message is from a user
                             timelineItemDiv.append('<h3 class="timeline-header"><a href="#">' + response.user + '</a></h3>');
                             timelineItemDiv.append('<div class="timeline-message">' + message.message + '</div>');
                         }
+
                         var timelineFooter = $('<div class="timeline-footer"></div>');
+                        var currentTicketMessageId = message.ticketMessageId;
                         timelineItemDiv.append(timelineFooter);
                         timelineUl.append(timelineItem);
                     });
+
+                    
                     modalBody.append('<div id="ticket_list" style="height:250px;overflow:auto"></div>'); // Placeholder for timeline
                     modalBody.find('#ticket_list').append(timelineUl);
                     modalBody.append('<br><textarea class="form-control" name="tmessage" id="tmessage" style="height:100px;">Dear Trader, </textarea>');
@@ -221,7 +230,7 @@
                         var replyMessage = $('#tmessage').val();
                         event.preventDefault();
                         $.ajax({
-                            url: '/process-ticket'
+                            url: '{{url("/process-ticket")}}'
                             , method: 'POST'
                             , data: {
                                 _token: window.csrfToken
@@ -249,19 +258,19 @@
                     rowFooterDiv.append(col6FooterDiv);
                     rowFooterDiv.append(col6FooterDiv2);
                     modalFooter.append(rowFooterDiv);
-                     var closeButton = $('<button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>');
+                    var closeButton = $('<button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>');
 
-               
-                closeButton.on('click', function() {
-                    $('#ticketModal').modal('hide');
-                });
 
-              
-                modalHeader.append(closeButton);
-                  
+                    closeButton.on('click', function() {
+                        $('#ticketModal').modal('hide');
+                    });
+
+
+                    modalHeader.append(closeButton);
+
                     modalContent.append(modalFooter);
 
-                 
+
                     $('#ticketModal').find('.modal-content').html(modalContent);
                     $('#ticketModal').modal('show');
                 }
@@ -276,7 +285,7 @@
         editButton.hide();
         editButton.siblings('.ccmsg, .ucmsg').show();
         messageDiv.hide();
- 
+
         editTextarea.val(messageDiv.text()).show().prop('disabled', false);
     });
 
@@ -307,19 +316,20 @@
             , success: function(response) {
                 if (response.success) {
                     console.log('Ticket message updated successfully.');
-     
+
                     messageDiv.text(updatedMessage);
-               
+
                     updateButton.hide();
                     updateButton.siblings('.ccmsg, .ecmsg').show();
                     messageDiv.show();
                     editTextarea.hide().prop('disabled', true);
-          
+
                 } else {
                     console.error('Failed to update ticket message.');
                 }
             }
         });
     });
+
 </script>
 @endsection
