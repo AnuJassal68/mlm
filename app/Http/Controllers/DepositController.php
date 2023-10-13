@@ -40,17 +40,19 @@ class DepositController extends Controller
      */
     public function reinvestment(Request $request)
     {
+      
         try {
             $sconfig = (object)[];
-
+            
             $investmentArray = config('sconfig.investment');
-
-           
+            
+  
             $mindeposit = min($investmentArray);
-
+ 
             $balinf = balance_info($request->session()->get('user_id'), $sconfig);
+         
             $cbal = $balinf['binc'];
-
+            
             if ($request->input('deposit') >= 10 && $request->input('deposit') <= 99) {
                 $daily_percentage = 2.5;
             } elseif ($request->input('deposit') >= 100 && $request->input('deposit') <= 999) {
@@ -60,11 +62,16 @@ class DepositController extends Controller
             }
 
             if ($request->has('deposit')) {
+           
+               
                 $etype = "danger";
                 if ($request->input('deposit') >= $mindeposit) {
+                 
                     if ($request->input('deposit') > $cbal) {
+                       
                         return redirect()->route('re-investment', ['msg' => 'insufficient']);
                     } else {
+                        
                         $timenow = time();
                         $inserts = [
                             "userid" => $request->session()->get('user_id'),
@@ -73,10 +80,11 @@ class DepositController extends Controller
                             "daily_percentage" => $daily_percentage,
                             "deposit_type" => 'Re-Investment'
                         ];
+                  
                         $deposit = Deposit::create($inserts);
-
-                        re_activate_investment($deposit->id, $sconfig);
-
+                       
+                     $re =  re_activate_investment($deposit->id, $sconfig);
+                    
                         $res = generate_block_io_address($deposit->id);
 
                         return redirect()->route('my-investment', ['msg' => 're-invest', 'am' => $request->input('deposit')]);
@@ -87,11 +95,12 @@ class DepositController extends Controller
             }
 
             $token = base64_decode($request->input('token'));
+        
             $dinfo = Deposit::where('id', $token)
                 ->where('deposit_type', 'Re-Investment')
                 ->where('userid', $request->session()->get('user_id'))
                 ->get();
-
+            
             $emsg = null;
             $etype = null;
 
@@ -113,11 +122,12 @@ class DepositController extends Controller
 
             $url = "https://blockchain.info/stats?format=json";
             $stats = Http::get($url)->json();
+       
             $btcValue = $stats['market_price_usd'];
             $usdCost = $dinfo[0]->deposit ?? 0;
 
             $convertedCost = $usdCost / $btcValue;
-
+         
             return view('user.re-investment', [
                 'emsg' => $emsg,
                 'etype' => $etype,
@@ -128,8 +138,8 @@ class DepositController extends Controller
                 'stats' => $stats,
             ]);
         } catch (\Exception $e) {
-           
-            return redirect()->route('re-investment')->with('error', $e->getMessage());
+           echo 'error';exit;
+            return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
@@ -409,22 +419,32 @@ class DepositController extends Controller
      *
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
-    public function requestPayments()
+
+    //  public function withdrawlview(){
+    //     return view ('user.withdraw');
+    //  }
+
+    
+    public function requestPayments(Request $request)
     {
+        
         try {
          $sconfig = config('sconfig');
-            // config('sconfig.investment');
+ 
+       
             $deposit = $mindeposit = $sconfig['minimum_deposit'];
             $mindeposit = $sconfig['minimum_withdraw'];
             $daily_percentage = $sconfig['daily_percentage'];
                 $uinfo = User::where('id', Session::get('user_id'))->select('id', 'accountno')->first();
+             
                  $ret = balance_info(Session::get('user_id'), $sconfig);
-
+                 
             if (request()->isMethod('post')) {
                    $etype = "danger";
                 if ($ret['binc'] >= $mindeposit && $ret['binc'] >= request('netamount')) {
                     $timenow = time();
                     $retr = doWithdrawal($uinfo, $ret, $sconfig);
+                   
                     return redirect()->route('request-withdraw', ['msg' => $retr]);
                 } else {
                     throw new \Exception("Insufficient balance for withdrawal.");
@@ -447,20 +467,28 @@ class DepositController extends Controller
 
             $rate = 0;
             if ($ret['wid'] > 0) {
+               
                 $rate = bitexchange();
+               
             }
 
             $url = "https://blockchain.info/stats?format=json";
-            $stats = json_decode(file_get_contents($url), true);
-            $btcValue = $stats['market_price_usd'];
-            $usdCost = $ret['binc'];
+        $stats = json_decode(file_get_contents($url), true);
+        $btcValue = $stats['market_price_usd'];
+        $usdCost = $ret['binc'];
+        $convertedCost = $usdCost / $btcValue;
 
-            $convertedCost = $usdCost / $btcValue;
-
+           
+           
             return view('user.withdraw', compact('mindeposit', 'ret', 'emsg', 'etype', 'convertedCost', 'uinfo', 'stats' ));
         } catch (\Exception $e) {
-           
-            return redirect()->route('request-withdraw', ['msg' => 'error'])->with('error', $e->getMessage());
+        //    echo 'nnnn';exit;
+        $url = "https://blockchain.info/stats?format=json";
+        $stats = json_decode(file_get_contents($url), true);
+        $btcValue = $stats['market_price_usd'];
+        $usdCost = $ret['binc'];
+        $convertedCost = $usdCost / $btcValue;
+            return view('user.withdraw', compact('mindeposit', 'ret',  'convertedCost', 'uinfo', 'stats' ))->with('error', $e->getMessage());
         }
     }
 
@@ -491,7 +519,7 @@ class DepositController extends Controller
             $list = DailyRoi::where('depositid', $vid)
                 ->orderBy('id', 'desc')
                 ->get();
-
+dd($list);
             return view('user.all-statements', compact('list'));
         } catch (\Exception $e) {
           
@@ -514,11 +542,15 @@ class DepositController extends Controller
     public function submitDeposit(Request $request)
     {
         // require_once('vendor/autoload.php');
+        // $uid = session()->all();
+        // dd($request);exit;
         try {
           $sconfig = config('sconfig');
+
          $invests = $sconfig['investment'];
+        
          $mindeposit = min($invests);
-        $use = LaraBlockIo::test();
+        
        
             if ($request->deposit >= 10 && $request->deposit <= 99) {
                 $daily_percentage = 2.5;
@@ -531,24 +563,29 @@ class DepositController extends Controller
             $etype = "danger";
             if ($request->deposit >= $mindeposit) {
                 $timenow = time();
+               
+                
                 $inserts = [
-                    "userid" => SESSION('user_id'),
+                    "userid" =>$request->session()->get('user_id'),
                     "createdate" => $timenow,
                     "deposit" => $request->deposit,
                     "daily_percentage" => $daily_percentage,
-                    "deposit_type" => 'Invest'
+                    "deposit_type" => 'Invest',
+                    
                 ];
              $nid = InsertQry("tbl_deposit", $inserts);
-    
+         
                 if (!$nid) {
                     throw new \Exception("Failed to insert deposit record.");
                 }
     
         
-                 return  $res = check_block_io_address($nid);
-    
-                if ($res === 'success') {
-                    return redirect()->route('processDeposit', ['token' => base64_encode($nid)]);
+                $res = generate_block_io_address($nid);
+
+                if ($res ) {
+                  
+                    return redirect()->route('processDeposit', ['token' => base64_encode($nid)])->with('success', 'deposit successfull!!');
+
                 } else {
                     throw new \Exception("Failed to generate BlockIo address.");
                 }
@@ -557,8 +594,8 @@ class DepositController extends Controller
                 return redirect('deposit')->with('error', $emsg);
             }
         } catch (\Exception $e) {
-       
-            return redirect('deposit')->with('error', 'Something went wrong. Please try again.');
+            echo 'rrrkk';exit;
+            return redirect('processDeposit')->with('error', 'Something went wrong. Please try again.');
         }
     }
     
@@ -575,25 +612,29 @@ class DepositController extends Controller
      */
     public function processDeposit(Request $request)
     {
+      
         try {
             $sconfig = config('sconfig');
-
             $invests = $sconfig['investment'];
             $mindeposit = min($invests);
-
+            
             if ($request->has('check_deposit') && !empty($request->get('token'))) {
                 $token = base64_decode($request->get('token'));
+          echo 'hello';
                 $ret = check_block_io_address($token);
-                if ($ret == 'success') {
+                // print_r($ret);exit;
+                if ($ret ) {
+                    echo 'anu2';exit;
                     activate_investment($token, $sconfig);
                     return redirect()->route('my-investment')->with('message', $ret);
                 }
-
+                echo 'anu3';exit;
                 return redirect()->route('btcvalue', ['token' => $request->get('token'), 'msg' => $ret]);
             }
 
             if (!empty($request->get('token'))) {
                 $token = base64_decode($request->get('token'));
+             
                 $dinfo = getquery('tbl_deposit', ' AND id = "' . $token . '" AND userid = "' . session('user_id') . '" AND deposit_type != "Re-Invest" ');
 
                 if (empty($dinfo)) {
@@ -614,16 +655,19 @@ class DepositController extends Controller
 
             $url = "https://blockchain.info/stats?format=json";
             $stats = Http::get($url)->json();
+          
             $btcValue = $stats['market_price_usd'];
 
             $usdCost = $dinfo[0]['deposit'];
 
             $convertedCost = $usdCost / $btcValue;
-
+    
+        
+// echo 'check';exit;
             return view('user.btcvalue', compact('dinfo', 'emsg', 'etype', 'convertedCost', 'stats'));
         } catch (\Exception $e) {
-           
-            return redirect()->route('processDeposit')->with('error', 'Something went wrong. Please try again.');
+            // echo 'anuanu';exit;
+            return redirect()->back()->with('error', 'Something went wrong. Please try again.');
         }
     }
 

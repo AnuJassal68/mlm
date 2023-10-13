@@ -31,8 +31,8 @@ use App\Http\Controllers\StateController;
 */
 
 
-Route::any('/', [HomeController::class,'index']);
-
+Route::get('/', [HomeController::class,'index']);
+Route::post('/submit_deposit', [DepositController::class, 'submitDeposit']);
 Route::get('/log-in', [LoginController::class, 'showLoginForm']);
 Route::any('/login', [LoginController::class, 'login']);
 Route::any('/log-out', [LoginController::class, 'logout']);
@@ -57,7 +57,7 @@ Route::middleware('auth.dashboard')->group(function () {
     Route::any('updateProfile', [UserController::class,'updateProfile'])->name('updateProfile');
 
 
-    Route::post('/submit_deposit', [DepositController::class, 'submitDeposit'])->name('submit_deposit');
+ 
     Route::any('/deposit', [DepositController::class, 'index'])->name('deposit');
     Route::any('/re-investment', [DepositController::class, 'reinvestment'])->name('re-investment');
     Route::any('/my-investment', [DepositController::class, 'myinvestment'])->name('my-investment');
@@ -67,10 +67,14 @@ Route::middleware('auth.dashboard')->group(function () {
     Route::any('/network', [DepositController::class, 'viewNetwork'])->name('network');
     Route::any('/incentive', [DepositController::class, 'dailyincentive'])->name('incentive');
     Route::any('/level-incentive', [DepositController::class, 'levelincentive'])->name('level-incentive');
+
+   
+    Route::any('/withdrawal', [DepositController::class, 'withdrawlview'])->name('withdrawal');
+
     Route::any('/request-Payments', [DepositController::class, 'requestPayments'])->name('request-withdraw');
     Route::any('/all-statements', [DepositController::class, 'allstatement'])->name('all-statements');
     Route::any('/processDeposit', [DepositController::class, 'processDeposit'])->name('processDeposit');
-    Route::any('/submit-Deposit', [DepositController::class, 'submitDeposit'])->name('submit-Deposit');
+   
 
     //support ticket controller
     Route::any('/new-ticket', [SupportTicketController::class, 'newticket'])->name('new-ticket');

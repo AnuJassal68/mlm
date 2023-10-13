@@ -9,8 +9,7 @@
         </div>
         <div class="container-fluid">
             <div class="row mt-15">
-                <div class="col-md-8 col-md-offset-2">
-                  
+                <div class="col-md-8 col-md-offset-2">             
                     <div class="panel">
                         <div class="panel-heading">
                             <div class="panel-title">

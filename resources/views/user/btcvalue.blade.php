@@ -17,9 +17,11 @@
                         </div>
                     </div>
                     <div class="panel-body">
-                    
+                {{-- @php
+                print_r($dinfo);exit;
+                @endphp --}}
 
-                        <form role="form" id="deposit_form" method="post" action="">
+                        <form role="form" id="deposit_form" method="post" action="{{url('processDeposit')}}">
                         @csrf
                             <div class="row">
                                 <div class="col-md-4">

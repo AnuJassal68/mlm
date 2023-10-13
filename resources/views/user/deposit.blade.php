@@ -109,7 +109,7 @@
 									<h4 class="modal-title text-center" id="modal2Label"> Enter the Amount you want to pay  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button></h4>
 								</div>
 								<div class="modal-body">
-									<form class="form-horizontal" role="form" id="deposit_form" method="post" action="{{route('submit-Deposit')}}">
+									<form class="form-horizontal" role="form" id="deposit_form" method="post" action="{{url('/submit_deposit')}}">
 										@csrf
 										<div class="form-group">
 											<label for="default" class="col-sm-2 control-label" style="font-size:20px;">$</label>

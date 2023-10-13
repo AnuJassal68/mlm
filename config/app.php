@@ -166,7 +166,8 @@ return [
         /*
          * Application Service Providers...
          */
-        
+        PrevailExcel\Nowpayments\NowpaymentsServiceProvider::class,
+
          Blockavel\LaraBlockIo\LaraBlockIoServiceProvider::class, // [a]
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
@@ -189,6 +190,8 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         'LaraBlockIo' => 'Blockavel\LaraBlockIo\LaraBlockIoFacade', // [b]
+        'Nowpayments' => PrevailExcel\Nowpayments\Facades\Nowpayments::class,
+
         // 'Example' => App\Facades\Example::class,
     ])->toArray(),
 

@@ -42,7 +42,8 @@ class LoginController extends Controller
                   ->first();
     
             if ($user && Hash::check($loginPassword, $user->loginpassword)) {
-                $request->session()->put('user_id', $user->id);
+                $use = $request->session()->put('user_id', $user->id);
+                // print_r($use);exit;
                 $request->session()->put('loginid', $user->loginid);
                 $request->session()->put('user_name', $user->firstname);
                 $request->session()->put('USER.PID', $user->packageid);

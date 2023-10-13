@@ -23,14 +23,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Collection;
-use Blockavel\LaraBlockIo\LaraBlockIoFacade;
-use App\Models\LaraBlockIo;
+
+
+// use App\Models\LaraBlockIo;
 
 
 function balance_info($userid)
 {
+   
     $timenow = time();
-    $uinfo = User::where('id', $userid)->where('bdormant', 'Y')->first(['packagedate']);
+    $uinfo = User::where('id', $userid)->where('bdormant', 'N')->first(['packagedate']);
+  
     $raise_per = 4;
     $today = $tdday = mktime(23, 59, 59, date('n'), date('j'), date('Y'));
 
@@ -47,7 +50,7 @@ function balance_info($userid)
         ->where('createdate', '<=', $timenow)
         ->selectRaw('SUM(deposit) AS totinv, SUM(p_return) as finc')
         ->first();
-
+  
     $finc = $rinfo->finc * 1;
     $totinv = $rinfo->totinv * 1;
 
@@ -55,7 +58,7 @@ function balance_info($userid)
         ->where('deposit_type', 'Re-Investment')
         ->selectRaw('SUM(deposit) AS totreinv')
         ->first();
-
+    
     $iinfo = Income::where('userid', $userid)->selectRaw('SUM(income) AS totinc')->first();
     $sinfo = Spent::where('userid', $userid)->selectRaw('SUM(processamt) AS totinc')->first();
     $seinfo = SpentExtra::where('userid', $userid)->selectRaw('SUM(processamt) AS totinc')->first();
@@ -64,7 +67,7 @@ function balance_info($userid)
     $inc = $iinfo->totinc + $finc;
 
     $ret['inc'] = round($inc, 2) + $profit->totinc;
-
+   
     $inc = round(($inc - ($sinfo->totinc + $seinfo->totinc)), 2);
     $inc = $inc + $profit->totinc;
 
@@ -76,6 +79,7 @@ function balance_info($userid)
 
     // Access the configuration settings using the Config facade
     $service_tax = Config::get('sconfig.service_tax');
+  
     $re_invest = Config::get('sconfig.re_invest');
 
     $ret['stax'] = $stax = round(($inc * $service_tax) / 100, 2);
@@ -85,9 +89,9 @@ function balance_info($userid)
     $ret['psharing'] = round($profit->totinc, 2);
 
     $updates = ["aboutme" => json_encode($ret)];
-
+    
     User::where('id', $userid)->update($updates);
-
+   
     return $ret;
 }
 
@@ -96,8 +100,10 @@ function balance_info($userid)
 
 function bitexchange($currency = 'USD')
 {
-    $url = 'https://bitpay.com/api/rates/' . $currency;
+    $url = 'https://block.io/api/v2/get_balance/?api_key=fded-1c7e-80b2-e61e' ;
+
     $ch = curl_init();
+    // CURLOPT_URL =>'http://localhost/coinswings/submit_deposit  ',
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_HTTPHEADER, Array("User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.15) Gecko/20080623 Firefox/2.0.0.15"));
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
@@ -107,8 +113,9 @@ function bitexchange($currency = 'USD')
     $result = curl_exec($ch);
     curl_close($ch);
     $info = json_decode($result, true);
-    // dd($info );
+    // dd( $info);
     $rate = $info['rate'];
+    // dd($rate);
     return $rate;
 }
 
@@ -116,7 +123,7 @@ function bitexchange($currency = 'USD')
 function api_data()
 {
     // Define your API data here
-    $apiKey = '971c-018a-1473-1192';
+    $apiKey = '346b-ffb3-e51b-4e02';
     $pin = 'apidots9779150641';
 
     return ['apikey' => $apiKey, 'pin' => $pin];
@@ -139,7 +146,9 @@ function DeleteList($table, $id, $parameters, $echo = '')
 
 function dowithdrawal($uinfo, $ret, $sconfig)
 {
+    // dd($uinfo);
     $sconfig = config('sconfig');
+   
     $timenow = time();
 
     // Include the required dependencies
@@ -158,29 +167,22 @@ function dowithdrawal($uinfo, $ret, $sconfig)
    
     $nid = InsertQry("tbl_spent", $inserts);
 
-    // Get API data
-    $api = api_data();
-    $apiKey = $api['apikey'];
-    $pin = $api['pin'];
-
-    $version = 2; // the API version
-
-    // Create the Guzzle HTTP client with the configuration options as an array
-    $config = [
-        'base_uri' => 'https://block.io/api/v2/',
-        'timeout' => 10,
-        // Add any additional headers here if needed
-    ];
-
-    $block_io = new Client($config); // Use the $config array here
-
-    $rate = bitexchange();
+    $api 	= api_data();
+	$apiKey = $api['apikey'];
+	$pin 	= $api['pin'];
+	
+	$version = 2; // the API version
+	
+	$block_io = new BlockIo($apiKey, $pin, $version);
+	
+	$rate 	= bitexchange();
 
     $amount = round(($ret['neta'] / $rate), 5);
-
+// dd( $amount);
     $amount = round((request('netamount') / $rate), 5);
 
     try {
+        print_r('hj');exit;
         $getinfo = $block_io->withdraw(array('amounts' => $amount, 'to_addresses' => $uinfo[0]->accountno));
 
         // Print the result for debugging (optional)
@@ -194,10 +196,12 @@ function dowithdrawal($uinfo, $ret, $sconfig)
 
         $ret = 'success';
     } catch (Exception $e) {
+        print_r('hjlk');exit;
         $error_log = $e->getMessage();
         DeleteList("tbl_spent", [$nid], "id");
         $ret = 'error';
     }
+ 
     return $ret;
 }
 
@@ -205,102 +209,147 @@ function dowithdrawal($uinfo, $ret, $sconfig)
 
 // app/Helpers/CustomHelpers.php
 
-function InsertQry($table, $insert, $log = '')
-{
-    $query = 'INSERT INTO ' . $table . ' (';
-    foreach ($insert as $key => $value) {
-        $query .= "$key,";
-    }
-    $query = substr($query, 0, -1) . ') VALUES (';
-    foreach ($insert as $key => $value) {
-        $query .= "'$value',";
-    }
-    $query = substr($query, 0, -1) . ')';
+// function InsertQry($table, $insert, $log = '')
+// {
+//     $query = 'INSERT INTO ' . $table . ' (';
+//     foreach ($insert as $key => $value) {
+//         $query .= "$key,";
+//     }
+//     $query = substr($query, 0, -1) . ') VALUES (';
+//     foreach ($insert as $key => $value) {
+//         $query .= "'$value',";
+//     }
+//     $query = substr($query, 0, -1) . ')';
 
-    DB::beginTransaction();
-    try {
-        $result = DB::insert($query);
-        $nid = DB::getPdo()->lastInsertId();
+//     DB::beginTransaction();
+//     try {
+//         $result = DB::insert($query);
+//         print_r( $result);echo'anu';exit;
+//         $nid = DB::getPdo()->lastInsertId();
+       
+//         if ($table != 'tbl_avtivity_log' && Auth::check() && !empty($log)) {
+//             $timenow = time();
+//             $ipadd = Request::ip();
+//             $link = $log['link'];
+//             if ($log['ID'] == 'ADD') {
+//                 $link = $log['link'] . $nid;
+//             }
+//             $insertLog = array(
+//                 "title" => $log['title'],
+//                 "href" => $link,
+//                 "section" => $log['section'],
+//                 "createdate" => $timenow,
+//                 "userid" => Auth::user()->id,
+//                 "pageid" => $nid,
+//                 "page" => $table,
+//                 "action" => "New Record",
+//                 "ipaddress" => $ipadd,
+//             );
+//             DB::table('tbl_avtivity_log')->insert($insertLog);
+//         }
 
-        if ($table != 'tbl_avtivity_log' && Auth::check() && !empty($log)) {
-            $timenow = time();
-            $ipadd = Request::ip();
+//         DB::commit();
+//         return $nid;
+//     } catch (Exception $e) {
+//         echo'result';exit;
+//         DB::rollback();
+//         throw $e;
+//     }
+// }
+// app/Helpers/DatabaseHelper.php
+
+
+   function InsertQry($table, $insert, $log = '') {
+      // app/Helpers/DatabaseHelper.php
+
+
+        $columns = implode(', ', array_keys($insert));
+       
+        $values = "'" . implode("', '", $insert) . "'";
+       
+        $query = "INSERT INTO $table ($columns) VALUES ($values)";
+
+        try {
+           
+            DB::table($table)->insert($insert);
+            
+            $nid = DB::getPdo()->lastInsertId();
+           
+        } catch (\Exception $e) {
+            throw new \Exception("Record was not inserted: " . $e->getMessage());
+        }
+        
+        if ($table != 'tbl_avtivity_log' && auth()->check() && !empty($log)) {
+            $timenow = now();
+            $ipadd = request()->ip();
             $link = $log['link'];
+
             if ($log['ID'] == 'ADD') {
                 $link = $log['link'] . $nid;
             }
-            $insertLog = array(
+
+            $insertLog = [
                 "title" => $log['title'],
                 "href" => $link,
                 "section" => $log['section'],
                 "createdate" => $timenow,
-                "userid" => Auth::user()->id,
+                "userid" => auth()->id(),
                 "pageid" => $nid,
                 "page" => $table,
                 "action" => "New Record",
                 "ipaddress" => $ipadd,
-            );
+            ];
+
             DB::table('tbl_avtivity_log')->insert($insertLog);
         }
 
-        DB::commit();
         return $nid;
-    } catch (Exception $e) {
-        DB::rollback();
-        throw $e;
+  
+
     }
-}
 
 
-    function generate_block_io_address($nid)
-    {
-        $api = api_data();
-        $apiKey = $api['apikey'];
-        $pin = $api['pin'];
 
-        $version = 2; // the API version
 
-        $client = new Client([
-            'base_uri' => 'https://block.io/api/v2/bitcoinspurchase',
-            'timeout' => 10,
-            'headers' => [
-                // Add any additional headers here if needed
-            ],
-        ]);
 
-        $oid = random_number(4);
+function generate_block_io_address($nid)
+{
+    // You may need to adjust this based on your application's logic
+    $api = api_data();
+    $apiKey = $api['apikey'];
+    $pin = $api['pin'];
 
-        $label = $oid . $nid;
+    $version = 2; // the API version
+
+    $blockIo = new BlockIo($apiKey, $pin, $version);
+   
+    $oid = random_number(4);
+
+    $label = $oid . $nid;
         $getNewAddressInfo = "";
         $ret = array();
         $error_log = "";
-
-        $response = $client->get('https://api.block.io/v2/bitcoinspurchase', [
-            'query' => [
-                'label' => $label,
-                'apiKey' => $apiKey,
-                'pin' => $pin,
-                'version' => $version,
-            ],
-        ]);
-
-        dd( $response);
-        
-        if ($response->getStatusCode() !== 200) {
-            // Handle non-200 status code here
-            echo "API request failed with status code: " . $response->getStatusCode();
-        } else {
-            $data = json_decode($response->getBody());
-            // Process the response data
-            $ret['address'] = $data->data->address;
-            $ret['label'] = $data->data->label;
-        }
-        
-    echo'0000';
-        $updates = ["address" => $ret['address'], "label" => $ret['label'], 'error_log' => $error_log];
-
-        UpdateQry("tbl_deposit", $updates, " id = '" . $nid . "'");
+       
+    try {
+       
+        $getNewAddressInfo = $blockIo->get_new_address(['label' => $label]);
+      
+        $ret['address'] = $getNewAddressInfo->data->address;
+       
+        $ret['label'] = $getNewAddressInfo->data->label;
+        $updates = array("address"=>$ret['address'],"label"=>$ret['label'],'error_log'=>$error_log);
+       
+        UpdateQry("tbl_deposit",$updates," id = '".$nid."'");
+    
+    } catch (Exception $e) {
+    
+        $ret['error_log'] = $e->getMessage();
     }
+  
+   
+   return $ret; 
+}
+
 
 
 
@@ -315,78 +364,92 @@ function random_number($numchar) {
 }
 
 
-function re_activate_investment($inid, $sconfig, $timenow = "")
-{
-  return  $sconfig = config('sconfig');
-    $dinfo = Deposit::where('id', $inid)
+
+
+function re_activate_investment($inid, $sconfig, $timenow = "") {
+    $dinfo = DB::table('tbl_deposit')
+        ->where('id', $inid)
         ->where('bActive', 'N')
         ->where('deposit_type', 'Re-Investment')
         ->select('userid', 'deposit')
         ->get();
+       
+$sconfig = config('sconfig.referral_payment');
 
-    if ($dinfo->isNotEmpty()) {
-        $refper = explode(",", $sconfig->referral_payment);
-        $maxlvl = count($refper);
+    if ($dinfo->count() > 0) {
+        // echo 'hj';exit;
+        $refper = implode(",", $sconfig);
+    
+      $array = explode(",", $refper);
+     
+        $refext = count($array);
+      
+       
+    
         if (empty($timenow)) {
             $timenow = time();
         }
 
-        Deposit::where('id', $inid)
-            ->where('bActive', 'N')
-            ->where('deposit_type', 'Re-Investment')
-            ->update([
-                'createdate' => $timenow,
-                'bActive' => 'Y'
-            ]);
-
-        $tdinfo = Deposit::where('userid', $dinfo[0]->userid)
+        DB::table('tbl_deposit')
+            ->where('id', $inid)
+            ->update(['createdate' => $timenow, 'bActive' => 'Y']);
+           
+        $tdinfo = DB::table('tbl_deposit')
+            ->where('userid', $dinfo[0]->userid)
             ->where('bActive', 'Y')
             ->where('deposit_type', 'Re-Investment')
-            ->selectRaw('SUM(deposit) as totdep')
-            ->first();
-
-        User::where('id', $dinfo[0]->userid)
-            ->update([
-                'packageid' => '1',
-                'mentor_income' => $tdinfo->totdep
-            ]);
-
-        $dstat = User::where('userid', $dinfo[0]->userid)
+            ->select(DB::raw('SUM(deposit) as totdep'))
+            ->get();
+           
+        $updates = ['packageid' => 1, 'mentor_income' => $tdinfo[0]->totdep];
+       
+        DB::table('tbl_user')
+            ->where('id', $dinfo[0]->userid)
+            ->update($updates);
+            // dd($dinfo[0]->userid);
+        $dstat = DB::table('tbl_dstat')
+            ->where('userid', $dinfo[0]->userid)
             ->select('parentid', 'levelid', 'unlimited')
             ->get();
-
+        dd($dstat);
         $nids = [0];
         $refid = 0;
         $mn = 0;
+
         foreach ($dstat as $stat) {
             if ($stat->levelid == 1) {
                 $refid = $stat->parentid;
             }
+
             if ($mn < 3) {
-                $paidUser = Deposit::where('userid', $stat->parentid)
+                $paidUser = DB::table('tbl_deposit')
+                    ->where('userid', $stat->parentid)
                     ->where('bActive', 'Y')
                     ->where('deposit_type', 'Re-Investment')
                     ->get();
 
-                if ($paidUser->isNotEmpty()) {
+                if ($paidUser->count() > 0) {
                     $per = $refper[$mn];
                     $ric = ($dinfo[0]->deposit * $per) / 100;
 
                     if ($stat->unlimited > 0) {
                         $nids[] = $stat->parentid;
                     }
+
                     if ($ric > 0) {
                         $inserts = [
-                            "userid" => $stat->parentid,
-                            "byuserid" => $dinfo[0]->userid,
-                            "propertyid" => $inid,
-                            "income" => $ric,
-                            "incometype" => "Level " . $stat->levelid,
-                            "incomelog" => '{"deposit":"' . $dinfo[0]->deposit . '","level":"' . $stat->levelid . '","percentage":"' . $per . '"}',
-                            "createdate" => $timenow,
-                            "activedate" => $timenow
+                            'userid' => $stat->parentid,
+                            'byuserid' => $dinfo[0]->userid,
+                            'propertyid' => $inid,
+                            'income' => $ric,
+                            'incometype' => 'Level ' . $stat->levelid,
+                            'incomelog' => json_encode(['deposit' => $dinfo[0]->deposit, 'level' => $stat->levelid, 'percentage' => $per]),
+                            'createdate' => $timenow,
+                            'activedate' => $timenow,
                         ];
-                        // InsertQry("tbl_income", $inserts);
+                        print_r($inserts);exit;
+                        // Insert into the 'tbl_income' table
+                        DB::table('tbl_income')->insert($inserts);
                     }
                     $mn++;
                 }
@@ -395,76 +458,76 @@ function re_activate_investment($inid, $sconfig, $timenow = "")
             }
         }
 
-        $per = '0.5';
+        $per = 0.5;
         foreach ($dstat as $stat) {
             $ric = ($dinfo[0]->deposit * $per) / 100;
-            $paidUser = Deposit::where('userid', $stat->parentid)
+            $paidUser = DB::table('tbl_deposit')
+                ->where('userid', $stat->parentid)
                 ->where('bActive', 'Y')
                 ->where('deposit_type', 'Re-Investment')
                 ->get();
 
-            if ($paidUser->isNotEmpty()) {
+            if ($paidUser->count() > 0) {
                 if ($stat->unlimited > 0 && !in_array($stat->parentid, $nids)) {
                     $inserts = [
-                        "userid" => $stat->parentid,
-                        "byuserid" => $dinfo[0]->userid,
-                        "propertyid" => $inid,
-                        "income" => $ric,
-                        "incometype" => "Level " . $stat->levelid,
-                        "incomelog" => '{"deposit":"' . $dinfo[0]->deposit . '","level":"' . $stat->levelid . '","percentage":"' . $per . '"}',
-                        "createdate" => $timenow,
-                        "activedate" => $timenow
+                        'userid' => $stat->parentid,
+                        'byuserid' => $dinfo[0]->userid,
+                        'propertyid' => $inid,
+                        'income' => $ric,
+                        'incometype' => 'Level ' . $stat->levelid,
+                        'incomelog' => json_encode(['deposit' => $dinfo[0]->deposit, 'level' => $stat->levelid, 'percentage' => $per]),
+                        'createdate' => $timenow,
+                        'activedate' => $timenow,
                     ];
-                    // InsertQry("tbl_income", $inserts);
+                    // Insert into the 'tbl_income' table
+                    DB::table('tbl_income')->insert($inserts);
                 }
             }
         }
 
-        $paidUser = Deposit::where('userid', $stat->parentid)
-            ->where('bActive', 'Y')
-            ->where('deposit_type', 'Re-Investment')
+        $con_amt1 = 100;
+        $con_amt2 = 500;
+        $cond_dir = 5;
+        $lnt = $knt = 0;
+
+        $uinfo = DB::table('tbl_user')
+            ->where('referalid', $refid)
+            ->select('id', 'mentor_income')
             ->get();
 
-        if ($paidUser->isNotEmpty()) {
-            $con_amt1 = 100;
-            $con_amt2 = 500;
-            $cond_dir = 5;
-            $lnt = $knt = 0;
-            $uinfo = User::where('referalid', $refid)
-                ->select('id', 'mentor_income')
-                ->get();
-
-            foreach ($uinfo as $user) {
-                if ($user->mentor_income >= $con_amt1) {
-                    $knt += 1;
-                }
-
-                if ($user->mentor_income >= $con_amt2) {
-                    $lnt += 1;
-                }
+        foreach ($uinfo as $user) {
+            if ($user->mentor_income >= $con_amt1) {
+                $knt += 1;
             }
-
-            if ($knt >= $cond_dir) {
-                User::where('id', $refid)
-                    ->where('bmentor', 'N')
-                    ->update([
-                        'unlimited' => 1,
-                        'coursedate' => $timenow,
-                        'bmentor' => 'Y'
-                    ]);
+            if ($user->mentor_income >= $con_amt2) {
+                $lnt += 1;
             }
+        }
 
-            if ($lnt >= $cond_dir) {
-                User::where('id', $refid)
-                    ->where('bdormant', 'N')
-                    ->update([
-                        'packagedate' => $timenow,
-                        'bdormant' => 'Y'
-                    ]);
-            }
+        if ($knt >= $cond_dir) {
+            // MARK PARENT AS UNLIMITED
+            DB::table('tbl_dstat')
+                ->where('parentid', $refid)
+                ->where('unlimited', 0)
+                ->update(['unlimited' => 1]);
+
+            // UPDATE USER INFO
+            DB::table('tbl_user')
+                ->where('id', $refid)
+                ->where('bmentor', 'N')
+                ->update(['coursedate' => $timenow, 'bmentor' => 'Y']);
+        }
+
+        if ($lnt >= $cond_dir) {
+            // UPDATE USER INFO
+            DB::table('tbl_user')
+                ->where('id', $refid)
+                ->where('bdormant', 'N')
+                ->update(['packagedate' => $timenow, 'bdormant' => 'Y']);
         }
     }
 }
+
 
 // app/Helpers/CustomHelpers.php
 
@@ -491,6 +554,8 @@ function alert_box($type = 'info')
     }
 }
 //update function
+
+
 function updateQry($table, $update, $parameters, $log = '')
 {
     $query = 'UPDATE ' . $table . ' SET ';
@@ -505,7 +570,7 @@ function updateQry($table, $update, $parameters, $log = '')
 
     $query = substr($query, 0, -1) . ' WHERE ' . $parameters;
 
-    // Perform the update query using Eloquent
+    // Perform the update query using Eloquentgenerate_block_io_address
     $log = is_string($log) ? ['counter' => $log] : $log;
     if (Arr::has($log, 'counter') && $log['counter'] !== '0') {
         // Perform the update query using Eloquent
@@ -565,6 +630,7 @@ function updateQry($table, $update, $parameters, $log = '')
 
     return true;
 }
+
 
 function activate_investment($inid, $sconfig, $timenow = "")
 {
@@ -718,101 +784,109 @@ function activate_investment($inid, $sconfig, $timenow = "")
 
 
 
-function check_block_io_address($nid)
-{
- $dinfo = DB::table("tbl_deposit")
-        ->select("deposit", "label")
-        ->where("id", $nid)
-        ->where("bActive", "N")
-        ->where("deposit_type", "!=", "Re-Invest")
-        ->first();
+function check_block_io_address ($nid) {
 
-    if ($dinfo) {
-      $api = api_data();
-        $apiKey = $api['apikey'];
-        $pin = $api['pin'];
+	$dinfo = Deposit::select('deposit', 'label')
+    ->where('id', $nid)
+    ->where('bActive', 'N')
+    ->where('deposit_type', '!=', 'Re-Invest')
+    ->get();
 
-        $version = 2; // the API version
+// print_r($dinfo);exit;
+	if(count($dinfo)){
+       
+        //  echo RPATH . '\vendor\blockavel\lara-block-io\src\LaraBlockIo.php';exit;
+        
+		$api 	= api_data();
+  
+		$apiKey = $api['apikey'];
+		$pin 	= $api['pin'];
+	
+		$version = 2; // the API version
+     
+		$blockio = new BlockIo(
+             $apiKey,
+            $pin,
+            $version,
+          
+        );
 
-        // Create a Guzzle Client instance
-        //    $client = new LaraBlockIo([
-        //     'base_uri' => 'https://block.io/api/v2/', // Update with the correct base URL
-        //     'timeout' => 10,
-        // ]);
-// return $use = LaraBlockIo::test();
-// dd($use);
-        $oid = random_number(4);
-        $label = $oid . $nid;
+		$oid = random_number(4);
+		
+		$label = $oid.$nid;
+		$getNewAddressInfo = "";
+		$ret = array();
+		
+	
+   
+		try {
+            echo 'hhhh';
+			$getNewAddressInfo = $blockio->get_address_balance(array('labels' => $dinfo[0]['label']));
+		
+			// dd($getNewAddressInfo);
+			// $ret['available_balance']= $getNewAddressInfo->data->available_balance;
+			$ret['available_balance']= $getNewAddressInfo->data->available_balance;
+            // print_r($ret['available_balance']);exit;
+			$ret['pending_received_balance'] 	= $getNewAddressInfo->data->pending_received_balance;
+            print_r($ret['pending_received_balance']);exit;
 
-        $getNewAddressInfo = "";
-        $ret = array();
-
-        try {
-            // Send a GET request using Guzzle Client
-            $response = $client->get('your_api_endpoint_here', [ // Replace 'your_api_endpoint_here' with the actual API endpoint
-                'query' => [
-                    'labels' => $dinfo->label,
-                    'apiKey' => $apiKey,
-                    'pin' => $pin,
-                    'version' => $version,
-                ],
-            ]);
-dd( $response);
-            // Parse the response JSON
-            $data = json_decode($response->getBody());
-
-            $ret['available_balance'] = $data->data->balances[0]->available_balance;
-            $ret['pending_received_balance'] = $data->data->balances[0]->pending_received_balance;
-
-            if ($ret['pending_received_balance'] > 0) {
-                $rate = bitexchange();
-                if ($rate > 0) {
-                    $deposit = $ret['pending_received_balance'] * $rate;
-                    $r_deposit = $dinfo->deposit - 1;
-                    if ($deposit >= $r_deposit) {
-                        $deposit = $dinfo->deposit;
-                    }
-
-                    $udeposit = $deposit;
-
-                    if ($udeposit >= 10 && $udeposit <= 99) {
-                        $daily_percentage = 2.5;
-                    } else if ($udeposit >= 100 && $udeposit <= 999) {
-                        $daily_percentage = 3;
-                    } else if ($udeposit >= 1000) {
-                        $daily_percentage = 4;
-                    }
-
-                    // Update the record in the database using DB facade
-                    DB::table("tbl_deposit")
-                        ->where("id", $nid)
-                        ->update([
-                            "usd_exchange" => $rate,
-                            "p_deposit" => $dinfo->deposit,
-                            'deposit' => $deposit,
-                            'daily_percentage' => $daily_percentage,
-                        ]);
-
-                    $ret = 'success';
-                } else {
-                    $ret = 'error';
-                }
-            } else {
-                $ret = 'wait';
-            }
-        } catch (\Exception $e) {
-            $error_log = $e->getMessage();
-
-            // Update the error_log in the database using DB facade
-            DB::table("tbl_deposit")
-                ->where("id", $nid)
-                ->update(['error_log' => $error_log]);
-
-            $ret = 'error';
-        }
-    }
-
-    return $ret;
+      
+			if($ret['pending_received_balance']>0){
+			
+				$rate= bitexchange();
+                // print_r($rate);exit;
+				if($rate > 0){
+					$deposit 	= $ret['pending_received_balance'] * $rate;
+                    // print_r($deposit);exit;
+					$r_deposit 	= $dinfo[0]->deposit - 1;
+					if($deposit>=$r_deposit){
+						$deposit = $dinfo[0]->deposit;
+					}
+					
+					$udeposit = $deposit;
+					
+					if($udeposit >= 10 && $udeposit <= 99){
+						$daily_percentage = 2.5;
+					}
+					else if($udeposit >= 100 && $udeposit <= 999){
+						$daily_percentage = 3;
+					}
+					else if($udeposit >= 1000){
+						$daily_percentage = 4;
+					}
+					
+					$updates = array("usd_exchange"=>$rate,"p_deposit"=>$dinfo[0]->deposit,'deposit'=>$deposit,'daily_percentage'=>$daily_percentage);
+				
+					UpdateQry("tbl_deposit",$updates," id = '".$nid."'");
+					$ret = 'success';
+				}
+				else {
+					$ret = 'error';echo 'yyy';
+				}
+			}
+			else {
+				if($ret['pending_received_balance']>0){
+					$ret = 'wait';
+				}
+				else {
+					
+				}
+				$ret = 'wait';	echo 'y777yy';
+			}
+			
+			
+		} catch (Exception $e) {
+			$ret['address'] = 'error';
+			$ret['label'] = $label;
+			$error_log = $e->getMessage();
+			print_r($error_log);exit;
+			$updates = array('error_log'=>$error_log);
+		
+			UpdateQry("tbl_deposit",$updates," id = '".$nid."'");
+			$ret = 'error';
+		}
+	}
+	return $ret;echo '000';
 }
 
 

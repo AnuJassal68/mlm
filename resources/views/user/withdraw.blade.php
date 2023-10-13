@@ -22,7 +22,7 @@
                                 <div class="col-md-12">
                                     <div class="panel">
                                         <div class="panel-body">
-                                            <form class="form-horizontal" id="withdraw_form" method="post" action="">
+                                            <form class="form-horizontal" id="withdraw_form" method="post" action="{{url('/request-Payments')}}">
                                                 @csrf {{-- Add Laravel CSRF token to the form --}}
                                                 <div class="form-group">
                                                     <label for="default" class="col-sm-4 control-label">Enter desired amount</label>
@@ -71,4 +71,3 @@
 </section>
 <script src="users/plugins/jQuery/jQuery-2.1.4.min.js"></script>
 <script src="users/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
-
