@@ -21,7 +21,7 @@ class ForgotPasswordController extends Controller
         $email = $request->input('emailid');
 
         $user = User::where('emailid', $email)->where('bemail', 1)->where('bActive', 'Y')->first();
-
+        // dd($user);
         if (!$user) {
             return redirect()->route('forgot-password')->with('error', 'Invalid email or user not found.');
         }

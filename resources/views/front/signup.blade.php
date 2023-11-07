@@ -5,7 +5,8 @@
 			<div class="main-body">
 				<div class="body-inner">
 					<div class="card bg-white">
-						<form class="form-horizontal ng-pristine ng-valid" role="form" name="form" id="regform" method="post" action="" onsubmit="return validateForm();">
+						<form class="form-horizontal ng-pristine ng-valid" role="form" name="form" id="regform" method="post" action="{{url('register')}}" onsubmit="return validateForm();">
+						@csrf
 							<div class="card-content">
 								<section class="logo text-center">
 									<h2>Register</h2>
@@ -72,7 +73,7 @@
 								</fieldset>
 							</div>
 							<div class="card-action no-border text-right">
-								<button type="submit" name="nregsubmit" style="background:none;float:left;"><a href="log-in.php" class="color-primary">SIGN IN</a></button>
+								<button type="submit" name="nregsubmit" style="background:none;float:left;"><a href="{{url('log-in')}}" class="color-primary">SIGN IN</a></button>
 								<button type="submit" name="nregsubmit" style="background:none;"><a class="color-primary ">SIGN UP</a></button>
 							</div>
 						</form>

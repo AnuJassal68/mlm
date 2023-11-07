@@ -25,7 +25,7 @@
                                             <th class="text-center">#</th>
                                             <th class="text-center">Investment Date</th>
                                             <th class="text-center">Order No.</th>
-                                            <th class="text-center">Deposited Amount</th>
+                                          
                                             <th class="text-center">Investment Amount</th>
                                             <th>Generated btc Address</th>
                                             <th class="text-center">Number of Days</th>
@@ -41,7 +41,7 @@
                                                 <b>{{ date("d M, Y h:i:s A", $info->createdate) }}</b><br>
                                             </td>
                                             <td class="text-center">{{ $info->label }}</td>
-                                            <td class="text-center">${{ $info->p_deposit }}</td>
+                                           
                                             <td class="text-center">${{ $info->deposit }}</td>
                                             <td>{{ $info->address }}</td>
                                             <td class="text-center">{{ $info->days }} Days</td>

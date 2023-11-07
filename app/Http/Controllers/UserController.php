@@ -60,7 +60,7 @@ class UserController extends Controller
     private function getTransactionInfo($uid, $tids)
     {
 
-
+        
         $trinfo = DB::select("
         (SELECT depositid as id, createdate, 'credit' AS ctype, 'Daily Incentive' AS tinfo, amount AS credit, 0 AS debit, 'roi' AS tarea FROM tbl_daily_roi WHERE userid = '$uid' AND depositid IN (" . implode(",", $tids) . "))
         UNION
@@ -171,6 +171,24 @@ class UserController extends Controller
         $ruinfo =  User::where('id', $uinfo->referalid)
           ->select('loginid', 'firstname', 'middlename', 'lastname')->first();
         return view('user.profile', compact('uinfo', 'ruinfo', 'uid'));
+    }
+
+
+    ///user register function
+    public function register(Request $request){
+        $data = $request->except('_token');
+        $inserts = [
+           
+            "firstname" => $request->input('firstname'),
+            "lastname" => $request->input('lastname'),
+            "mobile" => $request->input('mobile'),
+            "emailid" => $request->input('email'),           
+            "loginid" => $request->input('loginid'),
+           
+        ];
+// dd($inserts);
+        InsertQry('tbl_user',$inserts);
+            return redirect('log-in')->with('success','Registeration successfull');
     }
 
 }

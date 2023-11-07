@@ -121,7 +121,7 @@ class LoginController extends Controller
         $request->session()->forget('USER');
         $request->session()->forget('TSES');
 
-        return redirect('/');
+        return redirect('/Home');
     }
 
     public function signup()

@@ -10,4 +10,5 @@ class Spent extends Model
     use HasFactory;
     protected $table = 'tbl_spent';
     protected $primaryKey = 'id';
+protected $fillable = ['status','description' /* other fillable fields */];
 }

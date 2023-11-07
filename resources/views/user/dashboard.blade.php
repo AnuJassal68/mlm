@@ -30,12 +30,27 @@
                     </div>
                     <span class="stat-footer"><i class="fa fa-arrow-up color-success"></i>Will be credited immediately</span>
                 </a>
-
             </div>
             <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                 <a class="dashboard-stat-2 bg-success my-green" href="#">
                     <div class="stat-content">
-                        <span class="number counter">{{ number_format($ret['binc'] * 1, 2) }}
+                    @php
+   
+    $permissionsArray = session('deduct');
+
+
+
+@endphp
+
+@if ($permissionsArray)
+
+    {{-- <span class="number counter">{{ 10 }}</span> --}}
+    <span class="number counter">{{ number_format($ret['binc'] * 1 , 2) }}</span>
+@else
+    <span class="number counter">{{ number_format($ret['binc'] * 1, 2) }}</span>
+@endif
+
+                       
                         </span>
                         <span class="name">Account Balance</span>
                     </div>

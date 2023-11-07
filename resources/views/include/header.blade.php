@@ -61,7 +61,7 @@
 				<nav class='navigation'>
 					<ul>
 						<li>
-							<a href="">Home</a>
+							<a href="{{url('/Home')}}">Home</a>
 						</li>
 						<li>
 							<a href="{{url('about')}}">About CW</a>

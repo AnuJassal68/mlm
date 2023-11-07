@@ -17,12 +17,14 @@
                         </div>
                     </div>
                     <div class="panel-body">
-                {{-- @php
-                print_r($dinfo);exit;
-                @endphp --}}
+                @php
+                $token =request()->get('token');
+ $tok = base64_decode($token);
+                @endphp
 
-                        <form role="form" id="deposit_form" method="post" action="{{url('processDeposit')}}">
+                        <form role="form" id="deposit_form" method="post" action="{{ url('processDeposit')}}">
                         @csrf
+                        
                             <div class="row">
                                 <div class="col-md-4">
                                     <h4>Order No. <span style="color:red;"><b>#{{ $dinfo[0]['label'] }}</b></span></h4>
@@ -64,6 +66,7 @@
                             @if ($dinfo[0]['address'] != 'error')
                                 <div class="row">
                                     <div class="col-md-8">
+                                    <input type = 'hidden' value = "{{$tok}}" name ="token">
                                         <input type="submit" name="check_deposit" value="Click here if you deposited the Amount and your account has not Activated yet." class="btn btn-success"> 
                                     </div>
                                 </div>

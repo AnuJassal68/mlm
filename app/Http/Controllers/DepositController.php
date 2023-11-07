@@ -11,10 +11,14 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Collection;
 use App\Models\DailyRoi;
+use App\Models\spent;
 use App\Models\Ticketing;
 use App\Models\TicketMessage;
 use GuzzleHttp\Client;
 use App\Models\LaraBlockIo;
+use PrevailExcel\Nowpayments\Facades\Nowpayments;
+use PrevailExcel\Nowpayments\Models\Logger;
+
 // use Blockavel\LaraBlockIo;
 class DepositController extends Controller
 {
@@ -40,19 +44,18 @@ class DepositController extends Controller
      */
     public function reinvestment(Request $request)
     {
-      
+
         try {
-            $sconfig = (object)[];
-            
-            $investmentArray = config('sconfig.investment');
-            
-  
-            $mindeposit = min($investmentArray);
- 
+
+            $sconfig = config('sconfig.investment');
+
+
+            $mindeposit = min($sconfig);
+
             $balinf = balance_info($request->session()->get('user_id'), $sconfig);
-         
+
             $cbal = $balinf['binc'];
-            
+
             if ($request->input('deposit') >= 10 && $request->input('deposit') <= 99) {
                 $daily_percentage = 2.5;
             } elseif ($request->input('deposit') >= 100 && $request->input('deposit') <= 999) {
@@ -62,16 +65,16 @@ class DepositController extends Controller
             }
 
             if ($request->has('deposit')) {
-           
-               
+
+
                 $etype = "danger";
                 if ($request->input('deposit') >= $mindeposit) {
-                 
+                    
                     if ($request->input('deposit') > $cbal) {
-                       
+
                         return redirect()->route('re-investment', ['msg' => 'insufficient']);
                     } else {
-                        
+
                         $timenow = time();
                         $inserts = [
                             "userid" => $request->session()->get('user_id'),
@@ -80,13 +83,22 @@ class DepositController extends Controller
                             "daily_percentage" => $daily_percentage,
                             "deposit_type" => 'Re-Investment'
                         ];
-                  
-                        $deposit = Deposit::create($inserts);
-                       
-                     $re =  re_activate_investment($deposit->id, $sconfig);
-                    
-                        $res = generate_block_io_address($deposit->id);
 
+                        $deposit = Deposit::create($inserts);
+                        $nid = $deposit->id;
+                        //  dd( $deposit->id);
+                        $re =  re_activate_investment($deposit->id, $sconfig);
+
+                        $res = $this->apidata($request);
+                        $resArray = json_decode($res, true);
+
+                        $address = $resArray['pay_address'];
+
+                        $label = $resArray['payment_id'];
+                        $error_log = "";
+                        $updates = array("address" => $address, "label" => $label, 'error_log' => $error_log);
+
+                        UpdateQry("tbl_deposit", $updates, " id = '" . $nid . "'");
                         return redirect()->route('my-investment', ['msg' => 're-invest', 'am' => $request->input('deposit')]);
                     }
                 } else {
@@ -95,12 +107,12 @@ class DepositController extends Controller
             }
 
             $token = base64_decode($request->input('token'));
-        
+
             $dinfo = Deposit::where('id', $token)
                 ->where('deposit_type', 'Re-Investment')
                 ->where('userid', $request->session()->get('user_id'))
                 ->get();
-            
+
             $emsg = null;
             $etype = null;
 
@@ -122,12 +134,12 @@ class DepositController extends Controller
 
             $url = "https://blockchain.info/stats?format=json";
             $stats = Http::get($url)->json();
-       
+
             $btcValue = $stats['market_price_usd'];
             $usdCost = $dinfo[0]->deposit ?? 0;
 
             $convertedCost = $usdCost / $btcValue;
-         
+
             return view('user.re-investment', [
                 'emsg' => $emsg,
                 'etype' => $etype,
@@ -138,7 +150,8 @@ class DepositController extends Controller
                 'stats' => $stats,
             ]);
         } catch (\Exception $e) {
-           echo 'error';exit;
+            echo 'error';
+            exit;
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
@@ -154,7 +167,7 @@ class DepositController extends Controller
     public function myinvestment(Request $request)
     {
         $sconfig = [];
-        $userId = Session::get('user_id'); 
+        $userId = Session::get('user_id');
         $rinfo = DB::table('tbl_deposit')
              ->where('userid', $userId)
              ->where('bActive', 'Y')
@@ -163,13 +176,13 @@ class DepositController extends Controller
              ->orderByDesc('createdate')
              ->get();
 
-      
+
         $emsg = '';
         $etype = '';
-    
+
         $offset = $_GET['offset'] ?? 0;
         $str = "pg=my-investment";
-       
+
         return view('user.my-investment', compact('emsg', 'etype', 'rinfo', 'str', 'offset'));
     }
     /**
@@ -201,7 +214,7 @@ class DepositController extends Controller
     public function viewPendingDeposits()
     {
         try {
-            $limit = 40;
+
             $rinfo = DB::table('tbl_deposit')
                         ->where('userid', session('user_id'))
                         ->where('deposit_type', 'Invest')
@@ -214,9 +227,9 @@ class DepositController extends Controller
             $stats = $response->json();
             $btcValue = $stats['market_price_usd'];
             $usdCost = 1;
-            return view('user.my-deposits', compact('rinfo', 'btcValue', 'usdCost', 'stats' ));
+            return view('user.my-deposits', compact('rinfo', 'btcValue', 'usdCost', 'stats'));
         } catch (\Exception $e) {
-           
+
             return redirect()->route('my-deposits')->with('error', $e->getMessage());
         }
     }
@@ -258,7 +271,7 @@ class DepositController extends Controller
             }
             return view('user.directs', compact('rinfo'));
         } catch (\Exception $e) {
-           
+
             return redirect()->route('direct-referrals')->with('error', $e->getMessage());
         }
     }
@@ -307,12 +320,12 @@ class DepositController extends Controller
                     ->get();
 
                 $userStatus = new Collection($userStatus);
-                $userinv = new Collection($userinv); 
+                $userinv = new Collection($userinv);
             }
 
             return view('user.network', compact('rinfo', 'userStatus', 'userinv', 'levels'));
         } catch (\Exception $e) {
-           
+
             return redirect()->route('network')->with('error', $e->getMessage());
         }
     }
@@ -333,8 +346,8 @@ class DepositController extends Controller
             $limit = 50;
             $raise_per = 4;
 
-            
-            $limit_days = $sconfig->days_limit ?? 0; 
+
+            $limit_days = $sconfig->days_limit ?? 0;
             $apkdt = 0;
 
             $uinfo = DB::table('tbl_user')
@@ -372,13 +385,44 @@ class DepositController extends Controller
                 }
             }
 
-           
+
             return view('user.incentive', compact('rinfo', 'emsg', 'etype'));
         } catch (\Exception $e) {
-          
+
             return redirect()->route('incentive')->with('error', $e->getMessage());
         }
     }
+    //roi listing
+
+
+
+    public function statement(Request $request)
+    {
+
+        $uid = $request->session()->get('user_id');
+        // dd( $uid);
+        $vid = base64_decode($request->input('vid'));//comenting due to static testing
+
+        // The rest of your code remains unchanged
+
+        $dinfo = Deposit::where('userid', $uid)
+                        ->where('id', $vid)
+                        ->get();
+
+        if($dinfo->isEmpty()) {
+            return redirect()->route('incentives');
+        }
+
+        $list = getquery("tbl_daily_roi", " AND depositid = '" . $vid . "' ORDER BY id desc");
+
+        return view('user.roi', [
+            'dinfo' => $dinfo,
+            'list' => $list,
+        ]);
+    }
+
+
+
 
     /**
      * Display the user's level-based incentives and earnings.
@@ -392,7 +436,6 @@ class DepositController extends Controller
     public function levelincentive(Request $request)
     {
         try {
-            $limit = 40;
 
             $rinfo = DB::table('tbl_income as inc')
                 ->join('tbl_user as us', 'inc.byuserid', '=', 'us.id')
@@ -400,14 +443,11 @@ class DepositController extends Controller
                 ->orderBy('inc.id', 'DESC')
                 ->select('inc.incometype', 'inc.income', 'inc.createdate', 'inc.incomelog', 'us.firstname', 'us.middlename', 'us.lastname', 'us.loginid')
                 ->get();
-
-            $knt = 0; 
-
-        
-            return view('user.level-incentive', compact('rinfo', 'knt'));
+            // dd($rinfo);
+            return view('user.level-incentive', compact('rinfo'));
         } catch (\Exception $e) {
-           
-            return redirect()->route('incentive')->with('error', $e->getMessage());
+
+            return back()->with('error', $e->getMessage());
         }
     }
 
@@ -420,32 +460,36 @@ class DepositController extends Controller
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
 
-    //  public function withdrawlview(){
-    //     return view ('user.withdraw');
-    //  }
-
-    
     public function requestPayments(Request $request)
     {
-        
+
         try {
-         $sconfig = config('sconfig');
- 
-       
+            $sconfig = config('sconfig');
+
+
             $deposit = $mindeposit = $sconfig['minimum_deposit'];
+         
             $mindeposit = $sconfig['minimum_withdraw'];
+            
             $daily_percentage = $sconfig['daily_percentage'];
-                $uinfo = User::where('id', Session::get('user_id'))->select('id', 'accountno')->first();
-             
-                 $ret = balance_info(Session::get('user_id'), $sconfig);
-                 
+         
+            $uinfo = User::where('id', Session::get('user_id'))->select('id', 'accountno')->first();
+         
+            $ret = balance_info(Session::get('user_id'), $sconfig);
+           
             if (request()->isMethod('post')) {
-                   $etype = "danger";
+                $etype = "danger";
+                // dd($ret );
                 if ($ret['binc'] >= $mindeposit && $ret['binc'] >= request('netamount')) {
+
                     $timenow = time();
-                    $retr = doWithdrawal($uinfo, $ret, $sconfig);
-                   
-                    return redirect()->route('request-withdraw', ['msg' => $retr]);
+                    $retr = doWithdrawal($uinfo, $ret, $sconfig, $request);
+
+                    if($retr == 'success') {
+
+                        return redirect('withdrawlist');
+                    }
+
                 } else {
                     throw new \Exception("Insufficient balance for withdrawal.");
                 }
@@ -464,34 +508,56 @@ class DepositController extends Controller
                 $emsg = 'Sorry, insufficient balance in your account for this request.';
                 $etype = 'warning';
             }
-
             $rate = 0;
             if ($ret['wid'] > 0) {
-               
                 $rate = bitexchange();
-               
             }
-
             $url = "https://blockchain.info/stats?format=json";
-        $stats = json_decode(file_get_contents($url), true);
-        $btcValue = $stats['market_price_usd'];
-        $usdCost = $ret['binc'];
-        $convertedCost = $usdCost / $btcValue;
+            $stats = json_decode(file_get_contents($url), true);
 
-           
-           
-            return view('user.withdraw', compact('mindeposit', 'ret', 'emsg', 'etype', 'convertedCost', 'uinfo', 'stats' ));
+            $btcValue = $stats['market_price_usd'];
+            $usdCost = $ret['binc'];
+            $convertedCost = $usdCost / $btcValue;
+
+
+
+            return view('user.withdraw', compact('mindeposit', 'ret', 'emsg', 'etype', 'convertedCost', 'uinfo', 'stats'));
         } catch (\Exception $e) {
-        //    echo 'nnnn';exit;
-        $url = "https://blockchain.info/stats?format=json";
-        $stats = json_decode(file_get_contents($url), true);
-        $btcValue = $stats['market_price_usd'];
-        $usdCost = $ret['binc'];
-        $convertedCost = $usdCost / $btcValue;
-            return view('user.withdraw', compact('mindeposit', 'ret',  'convertedCost', 'uinfo', 'stats' ))->with('error', $e->getMessage());
+
+            return view('user.withdraw')->with('error', $e->getMessage());
         }
     }
 
+
+//showing tds and adminchanrges before submit the data
+public function getBalanceInfo(Request $request)
+{
+    $userid = $request->session()->get('user_id');
+    
+    $amount = $request->input('amount');
+    
+    $ret = balance_info($userid);
+  // Call the balance_info function with the appropriate $userid
+    $tds = $ret['stax'];
+//    dd( $tds);
+    $admincharges = $ret['rein'];
+    
+    return response()->json(['tds' => $tds, 'admincharges' => $admincharges]);
+}
+    //showing withdarwal listing
+
+    public function withdrawlist(Request $request)
+    {
+        $q = $request->input('q', '');
+        $results = Spent::join('tbl_user AS usr', 'tbl_spent.userid', '=', 'usr.id')
+        ->orWhere('usr.did', 'LIKE', $q . '%')
+        ->orWhere('usr.loginid', 'LIKE', $q . '%')
+        ->select('tbl_spent.*', 'tbl_spent.id as spentid', 'usr.id', 'usr.loginid AS loginid', )
+        ->orderBy('tbl_spent.createdate', 'DESC')->get();
+
+
+        return view('user.withdrawallist', compact('results'));
+    }
 
     /**
  * Display all daily ROI statements for a specific deposit.
@@ -503,7 +569,7 @@ class DepositController extends Controller
  */
     public function allstatement(Request $request)
     {
-      
+
         try {
             $uid = $request->session()->get('user_id');
             $vid = base64_decode($request->input('vid'));
@@ -519,10 +585,10 @@ class DepositController extends Controller
             $list = DailyRoi::where('depositid', $vid)
                 ->orderBy('id', 'desc')
                 ->get();
-dd($list);
+
             return view('user.all-statements', compact('list'));
         } catch (\Exception $e) {
-          
+
             return redirect()->route('incentive')->with('error', 'Invalid deposit ID or an error occurred.');
         }
     }
@@ -544,14 +610,15 @@ dd($list);
         // require_once('vendor/autoload.php');
         // $uid = session()->all();
         // dd($request);exit;
+        $request = $request;
         try {
-          $sconfig = config('sconfig');
+            $sconfig = config('sconfig');
 
-         $invests = $sconfig['investment'];
-        
-         $mindeposit = min($invests);
-        
-       
+            $invests = $sconfig['investment'];
+
+            $mindeposit = min($invests);
+
+
             if ($request->deposit >= 10 && $request->deposit <= 99) {
                 $daily_percentage = 2.5;
             } elseif ($request->deposit >= 100 && $request->deposit <= 999) {
@@ -559,32 +626,46 @@ dd($list);
             } elseif ($request->deposit >= 1000) {
                 $daily_percentage = 4;
             }
-    
+
             $etype = "danger";
             if ($request->deposit >= $mindeposit) {
                 $timenow = time();
-               
-                
+
+
                 $inserts = [
-                    "userid" =>$request->session()->get('user_id'),
+                    "userid" => $request->session()->get('user_id'),
                     "createdate" => $timenow,
                     "deposit" => $request->deposit,
                     "daily_percentage" => $daily_percentage,
                     "deposit_type" => 'Invest',
-                    
+
                 ];
-             $nid = InsertQry("tbl_deposit", $inserts);
-         
+                $nid = InsertQry("tbl_deposit", $inserts);
+
                 if (!$nid) {
                     throw new \Exception("Failed to insert deposit record.");
                 }
-    
-        
-                $res = generate_block_io_address($nid);
 
-                if ($res ) {
-                  
-                    return redirect()->route('processDeposit', ['token' => base64_encode($nid)])->with('success', 'deposit successfull!!');
+                $oid = random_number(4);
+
+                $label = $oid . $nid;
+
+                $ret = array();
+                $error_log = "";
+                $res = $this->apidata($request);
+
+                $resArray = json_decode($res, true);
+
+                $address = $resArray['pay_address'];
+
+                $label = $resArray['payment_id'];
+
+                $updates = array("address" => $address, "label" => $label, 'error_log' => $error_log);
+
+                UpdateQry("tbl_deposit", $updates, " id = '" . $nid . "'");
+
+                if ($res) {
+                    return redirect()->route('processDeposit', ['token' => base64_encode($nid)])->with('success', 'Proccessing Payment');
 
                 } else {
                     throw new \Exception("Failed to generate BlockIo address.");
@@ -594,11 +675,57 @@ dd($list);
                 return redirect('deposit')->with('error', $emsg);
             }
         } catch (\Exception $e) {
-            echo 'rrrkk';exit;
+
             return redirect('processDeposit')->with('error', 'Something went wrong. Please try again.');
         }
     }
-    
+
+
+    public function apidata($request)
+    {
+        $jsonData = $request;
+
+        $data = array(
+            'price_amount' => $jsonData->deposit ?? 100,
+            'price_currency' => $jsonData->price_currency ?? 'usd',
+            'pay_amount' => $jsonData->deposit ?? 0,
+            'pay_currency' =>  'LINK',
+            'ipn_callback_url' => 'http://localhost/coinswings/processDeposit',
+            'order_id' => $jsonData->order_id ?? uniqid(),
+        );
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api-sandbox.nowpayments.io/v1/payment',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => array(
+                'x-api-key: 9WS3DBY-F8F4P16-KJB2FZY-3DJAJG0',
+                'Content-Type: application/json'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        if ($response === false) {
+            echo 'Curl error: ' . curl_error($curl);
+        } else {
+            curl_close($curl);
+            return $response;
+        }
+
+
+    }
+
+
+
 
 
     /**
@@ -610,31 +737,201 @@ dd($list);
      * @param  Request  $request
      * @return \Illuminate\View\View
      */
+
+    //  public function callbackurl(){
+
+    //  }
     public function processDeposit(Request $request)
     {
-      
+
+        $token = $request->get('token');
+        $id =  $request->session()->get('user_id');
         try {
             $sconfig = config('sconfig');
+
             $invests = $sconfig['investment'];
+
             $mindeposit = min($invests);
-            
-            if ($request->has('check_deposit') && !empty($request->get('token'))) {
-                $token = base64_decode($request->get('token'));
-          echo 'hello';
-                $ret = check_block_io_address($token);
-                // print_r($ret);exit;
-                if ($ret ) {
-                    echo 'anu2';exit;
-                    activate_investment($token, $sconfig);
+
+            if ($request->has('check_deposit')) {
+
+                $nid = $request->get('token');
+
+
+                $ret = json_decode($this->getblance($request), true);
+                // dd($ret);
+                if (is_array($ret) && isset($ret['payment_status']) && $ret['payment_status'] == 'finished') {
+
+                    $us = activate_investment($nid, $sconfig);
+                    $inid = json_decode($nid);
+                    // dd( $inid );
+                    $timenow = time();
+
+                    $lmt = 1 * 1;
+
+                    if($lmt == 0) {
+                        mysql_query("TRUNCATE tbl_daily_roi");
+                    }
+                    //  $id = 1;
+                    $uinfo = User::orderBy('id', 'ASC')->where('id', $id)->get();
+                    $limit_days = $sconfig['days_limit'];
+                    $update = 1708300800;
+
+                    $newdate = 1739836800;
+                    $incdt =  strtotime(date("2017-06-30 23:59:59"));
+
+                    $today = $tdday = mktime(23, 59, 59, date('n'), date('j'), date('Y'));
+
+                    for($u = 0;$u < count($uinfo);$u++) {
+
+                        $userid = $uinfo[0]['id'];//1
+
+                        $ninc = 0;
+
+                        $rinfo = getquery("tbl_deposit", " AND id = '" . $inid . "' AND bActive = 'Y' AND deposit_type != 'Re-Invest'  AND createdate <= '" . $timenow . "'", "*");
+
+
+
+                        for($i = 0;$i < count($rinfo);$i++) {
+
+                            $tinc = $ninc = $ndays = $days = $daily_per = $inc = 0;
+
+                            $pkdt = strtotime("today", $rinfo[$i]['createdate']);
+
+                            $pkdt = $pkdt + 86400 * 3;
+
+                            $daily_per = $rinfo[$i]['daily_percentage'] * 1;
+
+                            $dblamt = $rinfo[$i]['deposit'] * 2;
+
+                            if($pkdt <= $update) {
+
+                                $days 	= floor(($update - $pkdt) / 86400) + 1;//2.5
+
+
+                                $days 	= 0;
+
+                                $start = $pkdt;
+                                $iter = 24 * 60 * 60;
+
+                                $stsun = 0;
+
+                                $qry = "INSERT INTO tbl_daily_roi (userid,depositid,roi,amount,createdate) values ";
+
+                                for($ia = $start; $ia <= $update; $ia = $ia + $iter) {
+
+                                    date("d.m.y", $incdt) . '-' . date("d.m.y", $ia) . '<br>';
+                                    if((Date('D', $ia) == 'Sat' || Date('D', $ia) == 'Sun') and $ia > $incdt) {
+                                        $stsun++;
+                                    } else {
+
+                                        $inc  = (($rinfo[$i]['deposit'] * $daily_per) / 100);
+
+                                        $tinc += $inc;
+
+                                        if($tinc < $dblamt) {
+                                            $inc = $dblamt - $tinc;
+
+                                        }
+
+                                        if($inc > 0) {
+                                            $days += 1;
+
+                                            $qry .= "('" . $userid . "','" . $rinfo[$i]['id'] . "','" . $daily_per . "','" . $inc . "','" . $ia . "'),";
+
+
+                                        }
+
+                                    }
+
+                                }
+                                if ($days > 0) {
+
+                                    $qry = rtrim($qry, ',');
+
+                                    DB::beginTransaction(); // Begin a transaction
+
+                                    try {
+                                        DB::statement($qry); // Execute the query
+
+                                        DB::commit(); // Commit the transaction
+
+                                        echo "Query executed successfully";
+                                    } catch (\Exception $e) {
+                                        DB::rollback(); // Rollback the transaction if an exception occurred
+
+                                        echo "Error executing query: " . $e->getMessage();
+                                    }
+                                    return redirect()->route('my-investment')->with('message', $ret);
+                                }
+
+                            }
+                            #nudate
+
+                            if($pkdt < $newdate) {
+                                $nudate = $newdate;
+                            } else {
+
+                                $nudate = $pkdt;
+
+                            }
+                            #new per
+
+                            if($rinfo[$i]['deposit'] >= 10000) {
+                                $daily_per = 2.5;
+                            } elseif($rinfo[$i]['deposit'] >= 3000) {
+                                $daily_per = 2;
+                            } else {
+                                $daily_per = 1.25;
+                            }
+                            $iter = 24 * 60 * 60;
+
+                            $stsun = 0;
+
+                            $qry =  "INSERT INTO tbl_daily_roi (userid,depositid,roi,amount,createdate) values ";
+
+                            for($ia = $nudate; $ia >= $today; $ia = $ia + $iter) {
+
+                                if(Date('D', $ia) == 'Sat' || Date('D', $ia) == 'Sun') {
+
+                                    $stsun++;
+
+                                } else {
+                                    $inc  = (($rinfo[$i]['deposit'] * $daily_per) / 100);
+
+                                    $tinc += $inc;
+
+                                    if($tinc > $dblamt) {
+                                        $inc = $dblamt - $tinc;
+                                    }
+
+                                    if($inc > 0) {
+
+                                        $ndays += 1;
+                                        $qry .= "('" . $userid . "','" . $rinfo[$i]->id . "','" . $daily_per . "','" . $inc . "','" . $ia . "'),";
+
+                                    }
+
+                                }
+
+                            }
+
+                            if($ndays > 0) {
+
+                                $qry = rtrim($qry, ',');
+                                mysql_query($qry);
+                            }
+                        }
+                    }
                     return redirect()->route('my-investment')->with('message', $ret);
                 }
-                echo 'anu3';exit;
+
                 return redirect()->route('btcvalue', ['token' => $request->get('token'), 'msg' => $ret]);
             }
 
             if (!empty($request->get('token'))) {
                 $token = base64_decode($request->get('token'));
-             
+
                 $dinfo = getquery('tbl_deposit', ' AND id = "' . $token . '" AND userid = "' . session('user_id') . '" AND deposit_type != "Re-Invest" ');
 
                 if (empty($dinfo)) {
@@ -655,15 +952,15 @@ dd($list);
 
             $url = "https://blockchain.info/stats?format=json";
             $stats = Http::get($url)->json();
-          
+
             $btcValue = $stats['market_price_usd'];
 
             $usdCost = $dinfo[0]['deposit'];
 
             $convertedCost = $usdCost / $btcValue;
-    
-        
-// echo 'check';exit;
+
+
+            // echo 'check';exit;
             return view('user.btcvalue', compact('dinfo', 'emsg', 'etype', 'convertedCost', 'stats'));
         } catch (\Exception $e) {
             // echo 'anuanu';exit;
@@ -671,5 +968,43 @@ dd($list);
         }
     }
 
+    public function getblance($request)
+    {
+        $id = $request->get('token');
 
+        $data = Deposit::where('id', $id)->get('label');
+
+        $value = $data[0]->label;
+        //  dd($value);
+        //         $jsonData = $request;
+        //         $data = array(
+
+
+        //             'order_id' => $jsonData->order_id ?? uniqid(),
+        //         );
+
+        // dd($data);
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+          CURLOPT_URL => 'https://api-sandbox.nowpayments.io/v1/payment/' . $value,
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_ENCODING => '',
+          CURLOPT_MAXREDIRS => 10,
+          CURLOPT_TIMEOUT => 0,
+          CURLOPT_FOLLOWLOCATION => true,
+          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+          CURLOPT_CUSTOMREQUEST => 'GET',
+          CURLOPT_HTTPHEADER => array(
+            'x-api-key: 9WS3DBY-F8F4P16-KJB2FZY-3DJAJG0'
+          ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+
+        return $response;
+
+    }
 }

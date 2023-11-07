@@ -7,6 +7,7 @@ use App\Models\User; // Replace with the actual User model namespace
 use App\Models\Deposit; // Replace with the actual Deposit model namespace
 use App\Models\Income; // Replace with the actual Income model namespace
 use App\Models\Spent;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Response;
 
 class PayoutController extends Controller
@@ -29,7 +30,7 @@ class PayoutController extends Controller
                ->orWhere('usr.loginid', 'LIKE', $q . '%')
                ->orWhere('usr.emailid', 'LIKE', $q . '%')
                ->orWhere('usr.mobile', 'LIKE', $q . '%')
-               ->select('tbl_spent.*', 'usr.id', 'usr.loginid AS loginid', 'usr.firstname', 'usr.lastname')
+               ->select('tbl_spent.*','tbl_spent.id as spentid', 'usr.id', 'usr.loginid AS loginid', 'usr.firstname', 'usr.lastname')
                ->orderBy('tbl_spent.id', 'DESC')->get();
 
         return view('admin.paid-list', compact('results', 'q'));
@@ -107,4 +108,42 @@ class PayoutController extends Controller
     {
         return redirect()->route('paid-list');
     }
+    
+    //payment function 
+    public function pay(Request $request, $id) {
+        
+        $data = Spent::find($id);
+
+        if ($data) {
+            $action = $request->input('action');
+    
+            if ($action === 'pay') {
+                if ($data['status'] == 0) {           
+                    $update = Spent::where('id', $data['id'])->update(['status' => '1']);
+                  
+                    return redirect('payoutindex')->with('success', 'Amount updated successfully');
+                }
+            } elseif ($action === 'cancel') {
+                $des = $request->input('description');
+                if ($data['status'] == 0) {
+                  
+                    $update1 = Spent::where('id', $data['id'])->update(['status' => '2', 'description' => $des,'processamt'=> '0','tds'=> '0','admincharges'=> '0','chargedamount'=> '0','trandetails'=> '0']);
+           
+                    return redirect('payoutindex')->with('success', 'Payment canceled successfully');
+                }
+            }
+        }
+    
+        return redirect()->route('paid-list')->with('error', 'No data found for the provided ID');
+    }
+    
+    
+     
+    
+    
+    
+
+    
+    
+
 }

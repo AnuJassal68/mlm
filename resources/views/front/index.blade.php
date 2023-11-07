@@ -42,8 +42,8 @@
 								data-speed="1000"
 								data-start="2000"
 								data-easing="Sine.easeOut">
-									<a class="btn-text" href="log-in">Login</a>
-									<a class="btn-text secondary_bg" href="/signup">Register</a>
+									<a class="btn-text" href="{{url('log-in')}}">Login</a>
+									<a class="btn-text secondary_bg" href="{{ url('signup') }}">Register</a>
 								</div>
 							</li>
 							<!-- SLIDE -->
@@ -85,7 +85,7 @@
 								data-start="2000"
 								data-easing="Sine.easeOut">
 									<a class="btn-text" href="{{url('log-in')}}">Login</a>
-									<a class="btn-text secondary_bg" href="#">Register</a>
+									<a class="btn-text secondary_bg" href="{{ url('signup') }}">Register</a>
 								</div>
 							</li>
 							<!-- SLIDE -->
@@ -126,8 +126,8 @@
 								data-speed="1000"
 								data-start="2000"
 								data-easing="Sine.easeOut">
-									<a class="btn-text" href="#">Login</a>
-									<a class="btn-text secondary_bg" href="#">Register</a>
+									<a class="btn-text" href="{{url('log-in')}}">Login</a>
+									<a class="btn-text secondary_bg" href="{{ url('signup') }}">Register</a>
 								</div>
 							</li>
 							<!-- SLIDE -->

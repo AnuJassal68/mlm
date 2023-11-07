@@ -120,7 +120,7 @@
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Manage Payouts <span class="caret"></span></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="{{route('incentive')}}"><i class="fa fa-sun-o"></i> Daily Incentive</a></li>
-                                    <li><a href="{{route('level-incentive')}}"><i class="fa fa-sitemap"></i> Level Incentive</a></li>
+                                    <li><a href="{{url('/level-incentive')}}"><i class="fa fa-sitemap"></i> Level Incentive</a></li>
                                     <li><a href="{{route('request-withdraw')}}"><i class="fa fa-bank"></i> Request Payments</a></li>
                                 </ul>
                             </li>
@@ -148,7 +148,7 @@
                                     <li><a href="{{url('showChangePasswordForm')}}"><i class="fa fa-cog"></i> Change Password</a></li>
                                     <li><a href="{{route('updateProfile')}}"><i class="fa fa-sliders"></i> Account Details</a></li>
                                     {{-- <li role="separator" class="divider"></li> --}}
-                                    <li><a href="{{url('log-out')}}" class="color-danger text-center"><i class="fa fa-sign-out"></i> Logout</a></li>
+                                    <li><a href="{{url('/log-out')}}" class="color-danger text-center"><i class="fa fa-sign-out"></i> Logout</a></li>
                                 </ul>
                             </li>
                             <!-- /.dropdown -->
@@ -165,9 +165,9 @@
         <p class="sub-title" style="color:black; font-weight:bold;">
        
             @if(session()->has('loginid'))
-                Referral Link: <span class="text-danger">{{ url('/').'?ref='.session('loginid') }}</span>
+                Referral Link: <span class="text-danger">{{ url('/home').'?ref='.session('loginid') }}</span>
             @else
-                Referral Link: {{ url('/') }}
+                Referral Link: {{ url('/home') }}
             @endif
             <span style="color:red; font-weight:bold;"></span>
         </p>
@@ -184,7 +184,7 @@
             <div class="col-md-6 text-right">
                 <a href="{{route('support-ticket')}}"><i class="fa fa-comments"></i> Support</a>
                 <a href="{{route('updateProfile')}}" class="pl-20"><i class="fa fa-cog"></i> Account Settings</a>
-                <a href="/log-out" class="pl-20"><i class="fa fa-sign-out"></i> Logout</a>
+                <a href="{{url('log-in')}}" class="pl-20"><i class="fa fa-sign-out"></i> Logout</a>
             </div>
         </div>
 

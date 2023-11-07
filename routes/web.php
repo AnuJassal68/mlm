@@ -31,12 +31,12 @@ use App\Http\Controllers\StateController;
 */
 
 
-Route::get('/', [HomeController::class,'index']);
+Route::get('/Home', [HomeController::class,'index']);
 Route::post('/submit_deposit', [DepositController::class, 'submitDeposit']);
 Route::get('/log-in', [LoginController::class, 'showLoginForm']);
 Route::any('/login', [LoginController::class, 'login']);
 Route::any('/log-out', [LoginController::class, 'logout']);
-Route::get('/signup', [LoginController::class, 'signup']);
+Route::any('/signup', [LoginController::class, 'signup']);
 
 Route::get('/showChangePasswordForm', [LoginController::class,'showChangePasswordForm'])->name('showChangePasswordForm');
 Route::post('/changePassword', [LoginController::class,'changePassword'])->name('changePassword');
@@ -49,62 +49,42 @@ Route::get('/concept', [HomeController::class,'concept']);
 Route::get('/about', [HomeController::class,'about']);
 Route::get('/faq', [HomeController::class,'faq']);
 
-
+Route::post('register', [UserController::class,'register'])->name('register');
 Route::middleware('auth.dashboard')->group(function () {
     Route::get('dashboard', [UserController::class,'dashboard'])->name('user/dashboard');
 
     Route::get('profile', [UserController::class,'profile'])->name('profile');
+  
     Route::any('updateProfile', [UserController::class,'updateProfile'])->name('updateProfile');
 
-
- 
+    
+    Route::any('/get-balance-info', [DepositController::class, 'getBalanceInfo'])->name('get-balance-info');
     Route::any('/deposit', [DepositController::class, 'index'])->name('deposit');
     Route::any('/re-investment', [DepositController::class, 'reinvestment'])->name('re-investment');
     Route::any('/my-investment', [DepositController::class, 'myinvestment'])->name('my-investment');
     Route::any('/my-incentive', [DepositController::class, 'incentive'])->name('my-incentive');
     Route::any('/my-deposits', [DepositController::class, 'viewPendingDeposits'])->name('my-deposits');
+    Route::get('/withdrawlist', [DepositController::class, 'withdrawlist'])->name('withdrawlist');
     Route::any('/directs', [DepositController::class, 'directReferrals'])->name('directs');
     Route::any('/network', [DepositController::class, 'viewNetwork'])->name('network');
     Route::any('/incentive', [DepositController::class, 'dailyincentive'])->name('incentive');
-    Route::any('/level-incentive', [DepositController::class, 'levelincentive'])->name('level-incentive');
-
-   
+    Route::get('/statement', [DepositController::class, 'statement'])->name('statement');
+    Route::any('/level-incentive', [DepositController::class, 'levelincentive'])->name('level-incentive'); 
     Route::any('/withdrawal', [DepositController::class, 'withdrawlview'])->name('withdrawal');
-
     Route::any('/request-Payments', [DepositController::class, 'requestPayments'])->name('request-withdraw');
     Route::any('/all-statements', [DepositController::class, 'allstatement'])->name('all-statements');
     Route::any('/processDeposit', [DepositController::class, 'processDeposit'])->name('processDeposit');
-   
-
-    //support ticket controller
+ //support ticket controller
     Route::any('/new-ticket', [SupportTicketController::class, 'newticket'])->name('new-ticket');
     Route::any('/support-ticket', [SupportTicketController::class, 'supporticket'])->name('support-ticket');
     Route::any('/send-ticket', [SupportTicketController::class, 'sendSupportTicket'])->name('send-ticket');
     Route::get('/filesupport', [SupportTicketController::class, 'filesupport'])->name('filesupport');
     Route::any('/replyToTicket', [SupportTicketController::class, 'replyToTicket'])->name('replyToTicket');
-
-
-
-    
-
 });
 
 Route::any('/forget-password', [ForgotPasswordController::class, 'forgetpasswordpage'])->name('forget-password');
 Route::any('/sendPasswordResetEmail', [ForgotPasswordController::class, 'sendPasswordResetEmail'])->name('sendPasswordResetEmail');
-
-
-
-
 //  Route::get('FranchiseController', [UserController::class,'search'])->name('search');
-
-
-
-
-
-
-
-
-
 Route::get('/change-password', [ChangePasswordController::class,'showForm'])->name('changepassword');
 Route::post('/change-password', [ChangePasswordController::class,'changePassword'])->name('change.password');
 Route::any('/adminlogin', [ChangePasswordController::class,'adminlogin'])->name('adminlogin');
@@ -158,7 +138,9 @@ Route::middleware(['admin'])->group(function () {
     Route::post('notifications/deactivate', [NotificationController::class,'deactivateSelected'])->name('notifications.deactivate');
     Route::post('notifications/delete', [NotificationController::class,'deleteSelected'])->name('notifications.delete');
 
-    Route::get('/payoutindex', [PayoutController::class, 'payoutindex'])->name('paid-list');
+    Route::any('/payoutindex', [PayoutController::class, 'payoutindex'])->name('paid-list');
+    Route::post('/pay/{id}', [PayoutController::class, 'pay']);
+  
     Route::post('/payouts/search', [PayoutController::class, 'search'])->name('payouts.search');
     Route::any('/payouts/excel', [PayoutController::class, 'excel'])->name('payouts.excel');
     Route::post('/payouts/reset', [PayoutController::class, 'reset'])->name('payouts.reset');

@@ -18,7 +18,7 @@
                         </div>
                         <div class="panel-body">
                             <div class="table-responsivea">
-                               <table class="table table-striped table-bordered sumtbl" id="transactionTable">
+                                <table class="table table-striped table-bordered sumtbl" id="transactionTable">
                                     <thead>
                                         <tr>
                                             <th width="3%" class="text-center">#</th>
@@ -40,7 +40,7 @@
                                         $knt += 1;
                                         @endphp
                                         <tr>
-                                          <th scope="row" class="text-center">{{ $knt + request()->query('offset', 0) }}</th>
+                                            <th scope="row" class="text-center">{{ $knt + request()->query('offset', 0) }}</th>
 
                                             <td>
                                                 <b>{{ date("d M Y h:i:s A", $info->createdate) }}</b><br>
@@ -51,7 +51,7 @@
                                             <td class="text-center">{{ $info->days }} Days</td>
                                             <td class="text-right">${{ $info->p_return }}</td>
                                             <td class="text-center">
-                                                <a href="?pg=statement&amp;vid={{ base64_encode($info->id) }}">Details</a>
+                                                <a href="{{ route('statement', ['vid' => base64_encode($info->id)]) }}">Details</a>
                                             </td>
                                         </tr>
                                         @endforeach
@@ -79,9 +79,10 @@
 <script src="users/plugins/jQuery/jQuery-2.1.4.min.js"></script>
 <script src="users/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
 <script src="users/plugins/datatables/jquery.dataTables.min.js" type="text/javascript"></script>
-			<script src="users/plugins/datatables/dataTables.bootstrap.min.js" type="text/javascript"></script>
+<script src="users/plugins/datatables/dataTables.bootstrap.min.js" type="text/javascript"></script>
 <script>
     $(document).ready(function() {
         $('#transactionTable').DataTable();
     });
+
 </script>
