@@ -166,4 +166,15 @@
     </section>
 </section>
 
+<script src="users/plugins/jQuery/jQuery-2.1.4.min.js"></script>
+<script src="users/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+<script src="users/plugins/datatables/jquery.dataTables.min.js" type="text/javascript"></script>
+<script src="users/plugins/datatables/dataTables.bootstrap.min.js" type="text/javascript"></script>
+<script>
+    $(document).ready(function() {
+        $('#transactionTable').DataTable();
+    });
+
+</script>
+
 @include('user.include.footer')

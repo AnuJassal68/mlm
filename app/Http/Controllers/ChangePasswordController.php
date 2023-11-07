@@ -34,34 +34,21 @@ class ChangePasswordController extends Controller
     */
     public function changePassword(Request $request)
     {
-        $emsg = '';
-        $etype = 'danger';
     
-        // First, validate the request data
-        $request->validate([
+       
+      $request->validate([
             'cpassword' => 'required',
-            'npassword' => 'required|min:6', // Minimum length of 6 characters
-            'rnpassword' => 'required|same:npassword', // Should match 'npassword'
+            'npassword' => 'required|min:6',
+            'rnpassword' => 'required|same:npassword', 
         ]);
-    
-        // Retrieve the authenticated admin user
-        $admin = auth()->guard('admin')->user();
-    
-        // Check if an admin user is authenticated
-        if ($admin) {
-            // Check if the current password matches the one provided in the request
-            if (password_verify($request->cpassword, $admin->loginpassword)) {
-                // Update the login password with the new hashed password
+ 
+        $admin = auth()->guard('admin')->user(); 
+        if ($admin) {        
+            if (password_verify($request->cpassword, $admin->loginpassword)) {            
                 $admin->loginpassword = bcrypt($request->npassword);
-                $admin->save();
-    
+                $admin->save(); 
                 return redirect()->route('changepassword')->with('success', 'Login Password has been changed successfully!');
-            } else {
-                $emsg = "Invalid Current Password. Please enter a valid current password to continue!";
-            }
-        } else {
-            $emsg = "Admin not authenticated.";
-        }
+            } 
     
         return redirect()->back()->with('error', 'Admin not authenticated.');
     }

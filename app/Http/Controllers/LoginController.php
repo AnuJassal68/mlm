@@ -153,25 +153,26 @@ class LoginController extends Controller
             ]);
 
             $user = User::find(Session::get('user_id'));
-
+// dd($user);
             // if (!$user) {
             //     // Handle the case when the user is not found in the database
             // }
 
-            if ($user->loginpassword == $request->input('cpassword')) {
+            if ($user && Hash::check($request->input('cpassword'), $user->loginpassword)) {
                 // Update the user's login password
-                $user->loginpassword = $request->input('rnpassword');
+                $user->loginpassword = Hash::make($request->input('rnpassword'));
                 $user->save();
-
-                return redirect()->route('changePasswordForm')->with([
+    
+                return redirect()->back()->with([
                     'emsg' => 'Login Password has been changed successfully !',
                     'etype' => 'success',
                 ]);
             } else {
-                return redirect()->route('changePasswordForm')->with([
+                return redirect()->back()->with([
                     'emsg' => 'Invalid Current Password. Please enter a valid current password to continue!',
                     'etype' => 'danger',
                 ]);
+    
             }
         }
     }
